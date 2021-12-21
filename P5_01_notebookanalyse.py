@@ -3,6 +3,31 @@
 
 # %%
 import pandas as pd
+import numpy as numpy
+import plotly.express as px
+
+# %%
+write_data = True
+
+# True : création d'un dossier Figures et Tableau
+# dans lesquels seront créés les éléments qui serviront à la présentation
+# et écriture des figures et tableaux dans ces dossier
+#
+# False : pas de création de dossier ni de figures ni de tableaux
+
+if write_data is True:
+    try:
+        os.mkdir("./Figures/")
+    except OSError as error:
+        print(error)
+    try:
+        os.mkdir("./Tableaux/")
+    except OSError as error:
+        print(error)
+else:
+    print("""Visualisation uniquement dans le notebook
+    pas de création de figures ni de tableaux""")
+
 # %%
 Customers = pd.read_csv('olist_customers_dataset.csv')
 Geolocation = pd.read_csv('olist_geolocation_dataset.csv')
@@ -33,7 +58,7 @@ Geolocation.info()
 #- geolocation_lat : latitude
 #- geolocation_lng : longitude
 #- geolocation_city : ville
-#- geolocation_state : état
+#- geolocation_state : état
 # %% [markdown]
 #### Produits
 # %%
@@ -76,7 +101,7 @@ Reviews.info()
 # %%
 Orders.info()
 # %% [markdown]
-#- order_id : identifiant de la commande, clé commune avec les payements, les notes 
+#- order_id : identifiant de la commande, clé commune avec les payements, les notes
 #et les objects achetés (items)
 #- customer_id : indentifiant du client, clé commune avec les clients
 #- order_status : status de la commande
@@ -84,7 +109,7 @@ Orders.info()
 #- order_approved_at : date ou le paiement à été approuvé
 #- order_delivered_carrier_date : date où la commande à été transmise au transporteur
 #- order_delivered_customer_date : date de livraison
-#- order_estimated_delivery_date : date de livraison estimée à la commande
+#- order_estimated_delivery_date : date de livraison estimée à la commande
 # %% [markdown]
 #### Produits
 # %%
@@ -119,5 +144,66 @@ ProdNameTranslation.info()
 #- product_category_name_english : noms des catégories de produits en anglais
 # %% [markdown]
 #Visualisation des liens entre les fichiers
-#![Liens fichiers](https://i.imgur.com/HRhd2Y0.png "Visualisation des liens entre les fichiers")
+#![Liens fichiers](https://i.imgur.com/HRhd2Y0.png "Visualisation des liens entre les
+#fichiers")
+# %% [markdown]
+#### Analyse données commandes
+# %%
+# état de la commande
+Orders.order_status.value_counts()
+# %% [markdown]
+# On ne va conserver que les commandes livrées et donc supprimer la colonne status. On
+# conserve les colonnes n'ayant pas de valeurs manquantes. On conserve les données
+# de date d'achat et de date de livraison estimée que l'on va mettre au format datetime
+# %%
+DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(axis=1).drop(
+    columns='order_status')
+# %%
+DelivOrders[['order_purchase_timestamp',
+             'order_estimated_delivery_date']] = DelivOrders[[
+                 'order_purchase_timestamp', 'order_estimated_delivery_date'
+             ]].astype('datetime64[ns]')
+
+# %%
+# visualisation du nombre de commandes par jours
+fig = px.line(DelivOrders.groupby(
+    DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
+              title='Nombre de commandes par jours',
+              labels=dict(value='Nombre de commandes', order_purchase_timestamp='Date'))
+fig.update_layout(showlegend=False)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/NbCommandesJ.pdf')
+if write_data is True:
+    fig.write_image('./Figures/NbCommandesJ.pdf')
+# %% [markdown]
+#### Analyse données produits
+# %%
+# ajouts noms des produits en anglais aux données de produits
+Products = Products.merge(
+    ProdNameTranslation,
+    on='product_category_name').drop(columns='product_category_name').rename(
+        columns={'product_category_name_english': 'product_category_name'})
+# %%
+# certaines catégories sont des doublons et finissent avec _2
+Products[Products.product_category_name.str.endswith(
+    '_2')].product_category_name.unique()
+# %%
+# comfort corrigé par confort
+Products.product_category_name = Products.product_category_name.str.replace(
+    'comfort_2', 'confort')
+# retrait du suffix
+Products.product_category_name = Products.product_category_name.str.replace(
+    '_2', '')
+# %%
+# figure du nombre de produits par catégories
+fig = px.bar(x=Products.product_category_name.value_counts().index,
+             y=Products.product_category_name.value_counts().values,
+             labels=dict(x='Catégories de produits', y='Nombre de produits'),
+             title='Nombre de produits par catégories',
+             height=500,
+             width=1200)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/NbProdCat.pdf')
 # %%
