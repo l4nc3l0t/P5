@@ -57,7 +57,7 @@ Geolocation.info()
 #- geolocation_zip_code_prefix : colonne commune avec les données clients
 #- geolocation_lat : latitude
 #- geolocation_lng : longitude
-#- geolocation_city : ville
+#- geolocation_city : ville
 #- geolocation_state : état
 # %% [markdown]
 #### Produits
@@ -114,7 +114,7 @@ Orders.info()
 #### Produits
 # %%
 Products.info()
-# %%
+# %% [markdown]
 #- product_id : identifiant du produit, clé commune avec les objects achetés (items)
 #- product_category_name : catégorie du produit
 #- product_name_lenght : nombre de caractères dans le nom du produit
@@ -147,36 +147,6 @@ ProdNameTranslation.info()
 #![Liens fichiers](https://i.imgur.com/HRhd2Y0.png "Visualisation des liens entre les
 #fichiers")
 # %% [markdown]
-#### Analyse données commandes
-# %%
-# état de la commande
-Orders.order_status.value_counts()
-# %% [markdown]
-# On ne va conserver que les commandes livrées et donc supprimer la colonne status. On
-# conserve les colonnes n'ayant pas de valeurs manquantes. On conserve les données
-# de date d'achat et de date de livraison estimée que l'on va mettre au format datetime
-# %%
-DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(axis=1).drop(
-    columns='order_status')
-# %%
-DelivOrders[['order_purchase_timestamp',
-             'order_estimated_delivery_date']] = DelivOrders[[
-                 'order_purchase_timestamp', 'order_estimated_delivery_date'
-             ]].astype('datetime64[ns]')
-
-# %%
-# visualisation du nombre de commandes par jours
-fig = px.line(DelivOrders.groupby(
-    DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
-              title='Nombre de commandes par jours',
-              labels=dict(value='Nombre de commandes', order_purchase_timestamp='Date'))
-fig.update_layout(showlegend=False)
-fig.show(renderer='notebook')
-if write_data is True:
-    fig.write_image('./Figures/NbCommandesJ.pdf')
-if write_data is True:
-    fig.write_image('./Figures/NbCommandesJ.pdf')
-# %% [markdown]
 #### Analyse données produits
 # %%
 # ajouts noms des produits en anglais aux données de produits
@@ -206,4 +176,58 @@ fig = px.bar(x=Products.product_category_name.value_counts().index,
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbProdCat.pdf')
+# %% [markdown]
+#### Analyse des données de localisation
 # %%
+Geolocation = Geolocation.groupby(
+    'geolocation_zip_code_prefix').mean().reset_index()
+Geolocation.head(3)
+# %% [markdown]
+#### Analyse des données de paiement
+# %%
+Payments
+# %% [markdown]
+#### Analyse données commandes
+# %%
+# agrégation des autres jeux de données aux commandes pour selectionner les données
+# intéressantes
+Orders.merge(Items, on='order_id', how='left').merge(
+    Reviews, on='order_id',
+    how='left').merge(Customers, on='customer_id', how='left').merge(
+        Geolocation,
+        left_on='customer_zip_code_prefix',
+        right_on='geolocation_zip_code_prefix',
+        how='left').drop(columns='geolocation_zip_code_prefix').merge(
+            Products, on='product_id', how='left')
+# %%
+# état de la commande
+Orders.order_status.value_counts()
+# %% [markdown]
+# On ne va conserver que les commandes livrées et donc supprimer la colonne status. On
+# conserve les colonnes n'ayant pas de valeurs manquantes. On conserve les données
+# de date d'achat et de date de livraison estimée que l'on va mettre au format datetime
+# %%
+DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(axis=1).drop(
+    columns='order_status')
+# %%
+DelivOrders[['order_purchase_timestamp',
+             'order_estimated_delivery_date']] = DelivOrders[[
+                 'order_purchase_timestamp', 'order_estimated_delivery_date'
+             ]].astype('datetime64[ns]')
+
+# %%
+# visualisation du nombre de commandes par jours
+fig = px.line(DelivOrders.groupby(
+    DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
+              title='Nombre de commandes par jours',
+              labels=dict(value='Nombre de commandes',
+                          order_purchase_timestamp='Date'))
+fig.update_layout(showlegend=False)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/NbCommandesJ.pdf')
+if write_data is True:
+    fig.write_image('./Figures/NbCommandesJ.pdf')
+
+# %% [markdown]
+#### Analyse données clients
