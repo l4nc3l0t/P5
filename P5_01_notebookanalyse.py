@@ -176,29 +176,20 @@ fig = px.bar(x=Products.product_category_name.value_counts().index,
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbProdCat.pdf')
+if write_data is True:
+    fig.write_image('./Figures/NbProdCat.pdf')
 # %% [markdown]
 #### Analyse des données de localisation
 # %%
+# Conservation des colonnes latitude et longitude non présentent dans d'autres jeux
+# de données. Moyenne des latitudes et longitude par préfix de code postale pour ne
+# pas avoir de données redondantes
 Geolocation = Geolocation.groupby(
     'geolocation_zip_code_prefix').mean().reset_index()
 Geolocation.head(3)
-# %% [markdown]
-#### Analyse des données de paiement
-# %%
-Payments
+
 # %% [markdown]
 #### Analyse données commandes
-# %%
-# agrégation des autres jeux de données aux commandes pour selectionner les données
-# intéressantes
-Orders.merge(Items, on='order_id', how='left').merge(
-    Reviews, on='order_id',
-    how='left').merge(Customers, on='customer_id', how='left').merge(
-        Geolocation,
-        left_on='customer_zip_code_prefix',
-        right_on='geolocation_zip_code_prefix',
-        how='left').drop(columns='geolocation_zip_code_prefix').merge(
-            Products, on='product_id', how='left')
 # %%
 # état de la commande
 Orders.order_status.value_counts()
@@ -226,8 +217,40 @@ fig.update_layout(showlegend=False)
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbCommandesJ.pdf')
+
+# %%
+# visualisation du nombre de commandes par mois
+DelivOrdersM = DelivOrders.groupby(
+    DelivOrders.order_purchase_timestamp.dt.to_period('M')).count()['order_id']
+DelivOrdersM.index = DelivOrdersM.index.astype('datetime64[M]')
+DelivOrdersM = DelivOrdersM.reset_index()
+fig = px.bar(DelivOrdersM,
+             x='order_purchase_timestamp',
+             y='order_id',
+             title='Nombre de commandes par mois',
+             labels=dict(order_id='Nombre de commandes',
+                         order_purchase_timestamp='Date'), height=300, width=800)
+fig.update_xaxes(dtick='M1', tickformat="%b\n%Y")
+fig.update_layout(showlegend=False)
+fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/NbCommandesJ.pdf')
+    fig.write_image('./Figures/NbCommandesM.pdf')
 
 # %% [markdown]
 #### Analyse données clients
+# %%
+# agrégation des autres jeux de données entre eux pour selectionner les données
+# intéressantes
+Data = Orders.merge(Items, on='order_id', how='left').merge(
+    Reviews, on='order_id',
+    how='left').merge(Customers, on='customer_id', how='left').merge(
+        Geolocation,
+        left_on='customer_zip_code_prefix',
+        right_on='geolocation_zip_code_prefix',
+        how='left').drop(columns='geolocation_zip_code_prefix').merge(
+            Products, on='product_id', how='left')
+
+# %%
+# sélection des commandes livrées
+DataDeliv = Data[Data.order_status == 'delivered'].drop(columns='order_status')
+# %%
