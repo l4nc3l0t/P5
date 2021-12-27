@@ -229,7 +229,9 @@ fig = px.bar(DelivOrdersM,
              y='order_id',
              title='Nombre de commandes par mois',
              labels=dict(order_id='Nombre de commandes',
-                         order_purchase_timestamp='Date'), height=300, width=800)
+                         order_purchase_timestamp='Date'),
+             height=300,
+             width=800)
 fig.update_xaxes(dtick='M1', tickformat="%b\n%Y")
 fig.update_layout(showlegend=False)
 fig.show(renderer='notebook')
@@ -239,18 +241,22 @@ if write_data is True:
 # %% [markdown]
 #### Analyse données clients
 # %%
-# agrégation des autres jeux de données entre eux pour selectionner les données
-# intéressantes
-Data = Orders.merge(Items, on='order_id', how='left').merge(
-    Reviews, on='order_id',
-    how='left').merge(Customers, on='customer_id', how='left').merge(
-        Geolocation,
-        left_on='customer_zip_code_prefix',
-        right_on='geolocation_zip_code_prefix',
-        how='left').drop(columns='geolocation_zip_code_prefix').merge(
-            Products, on='product_id', how='left')
+# identifiant des clients ayant réalisés plus de 2 commandes
+CustomersMultID = Customers.groupby('customer_unique_id').count(
+)['customer_id'][Customers.groupby('customer_unique_id').count()['customer_id']
+                 >= 2].reset_index().drop(columns='customer_id')
 
 # %%
-# sélection des commandes livrées
-DataDeliv = Data[Data.order_status == 'delivered'].drop(columns='order_status')
+# dataframe clients ayant réalisés plus de 2 commandes
+CustomersMulti = CustomersMultID.merge(Customers, on='customer_unique_id')
+# %%
+# agrégation des autres jeux de données entre eux
+Data = CustomersMulti.merge(DelivOrders, on='customer_id', how='left').merge(
+    Items, on='order_id', how='left').merge(Reviews, on='order_id', how='left').merge(
+        Products, on='product_id', how='left').merge(
+            Geolocation,
+            left_on='customer_zip_code_prefix',
+            right_on='geolocation_zip_code_prefix',
+            how='left').drop(columns='geolocation_zip_code_prefix')
+
 # %%
