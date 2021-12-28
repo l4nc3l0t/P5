@@ -2,6 +2,7 @@
 # Projet 5 : Segmentez des clients d'un site e-commerce
 
 # %%
+import os
 import pandas as pd
 import numpy as numpy
 import plotly.express as px
@@ -183,41 +184,73 @@ subcat_str = [
     'fashio|luggage|leisure', 'health|beauty|perfum', 'toy|baby|diaper',
     'book|cd|dvd|media|music|audio|art|cine|stationery', 'grocer|food|drink',
     'phon|compu|tablet|electro|consol',
-    'home|furnitur|garden|bath|house|applianc|cuisine|christmas|pet|market', 'flow|gift|stuff',
-    'auto|tools', 'industry|security|condition'
+    'home|furnitur|garden|bath|house|applianc|cuisine|christmas|pet|market',
+    'flow|gift|stuff', 'auto|tools', 'industry|security|condition'
 ]
 cat_name = [
-    'fashion_clothing_accessories', 'health_beauty', 'toys_baby',
-    'art_media', 'groceries_food_drink', 'technology', 'home_furniture',
-    'flowers_gifts', 'tools_car', 'industry_security'
+    'fashion_clothing_accessories', 'health_beauty', 'toys_baby', 'art_media',
+    'groceries_food_drink', 'technology', 'home_furniture', 'flowers_gifts',
+    'tools_car', 'industry_security'
 ]
 
 for subcat, cat in zip(subcat_str, cat_name):
     Products10Cat = Products
-    Products10Cat.product_category_name[Products10Cat.product_category_name.str.contains(
-        subcat)] = cat
+    Products10Cat.product_category_name[
+        Products10Cat.product_category_name.str.contains(subcat)] = cat
 # %%
+# liste des nouvelles catégories
 Products10Cat.product_category_name.unique()
 
 # %%
-# figure du nombre de produits par catégories
+# figure du nombre de produits dans les nouvelles catégories
 fig = px.bar(x=Products10Cat.product_category_name.value_counts().index,
              y=Products10Cat.product_category_name.value_counts().values,
              labels=dict(x='Catégories de produits', y='Nombre de produits'),
              title='Nombre de produits par catégories',
              height=500,
-             width=800)
+             width=600)
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbProdCat10.pdf')
+
+# %%
+Products10CatDum = pd.get_dummies(Products10Cat,
+                                  columns=['product_category_name'])
 # %% [markdown]
 #### Analyse des produits commandés
+
+# %%
+# merge items et données produits
+ItemsProd = Items.merge(Products10CatDum, on='product_id', how='left')
 # %%
 # nombre d'objets acheté dans une commande et somme des prix et des frais de port
-ItemsMean = Items.groupby('order_id').agg({
-    'order_item_id': 'max',
-    'price': 'sum',
-    'freight_value': 'sum'
+ItemsMean = ItemsProd.groupby('order_id').agg({
+    'order_item_id':
+    'max',
+    'price':
+    'sum',
+    'freight_value':
+    'sum',
+    'product_category_name_art_media':
+    'sum',
+    'product_category_name_fashion_clothing_accessories':
+    'sum',
+    'product_category_name_flowers_gifts':
+    'sum',
+    'product_category_name_groceries_food_drink':
+    'sum',
+    'product_category_name_health_beauty':
+    'sum',
+    'product_category_name_home_furniture':
+    'sum',
+    'product_category_name_industry_security':
+    'sum',
+    'product_category_name_technology':
+    'sum',
+    'product_category_name_tools_car':
+    'sum',
+    'product_category_name_toys_baby':
+    'sum'
 }).reset_index()
 # %% [markdown]
 #### Analyse des données de localisation
