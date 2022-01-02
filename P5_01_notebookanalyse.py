@@ -148,6 +148,73 @@ ProdNameTranslation.info()
 #![Liens fichiers](https://i.imgur.com/HRhd2Y0.png "Visualisation des liens entre les
 #fichiers")
 # %% [markdown]
+#### Analyse données commandes
+# %%
+# état de la commande
+Orders.order_status.value_counts()
+# %% [markdown]
+# On ne va conserver que les commandes livrées et donc supprimer la colonne status. On
+# conserve les colonnes n'ayant pas de valeurs manquantes. On conserve les données
+# de date d'achat et de date de livraison estimée que l'on va mettre au format datetime
+# %%
+DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(axis=1).drop(
+    columns='order_status')
+# %%
+DelivOrders[['order_purchase_timestamp',
+             'order_estimated_delivery_date']] = DelivOrders[[
+                 'order_purchase_timestamp', 'order_estimated_delivery_date'
+             ]].astype('datetime64[ns]')
+
+# %%
+# visualisation du nombre de commandes par jours
+fig = px.line(DelivOrders.groupby(
+    DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
+              title='Nombre de commandes par jours',
+              labels=dict(value='Nombre de commandes',
+                          order_purchase_timestamp='Date'))
+fig.update_layout(showlegend=False)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/NbCommandesJ.pdf')
+
+# %%
+# visualisation du nombre de commandes par mois
+DelivOrdersM = DelivOrders.groupby(
+    DelivOrders.order_purchase_timestamp.dt.to_period('M')).count()['order_id']
+DelivOrdersM.index = DelivOrdersM.index.astype('datetime64[M]')
+DelivOrdersM = DelivOrdersM.reset_index()
+fig = px.bar(DelivOrdersM,
+             x='order_purchase_timestamp',
+             y='order_id',
+             title='Nombre de commandes par mois',
+             labels=dict(order_id='Nombre de commandes',
+                         order_purchase_timestamp='Date'),
+             height=300,
+             width=800)
+fig.update_xaxes(dtick='M1', tickformat="%b\n%Y")
+fig.update_layout(showlegend=False)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/NbCommandesM.pdf')
+
+# %% [markdown]
+#### Analyse données clients
+# %%
+# identifiant des clients ayant réalisés plus de 2 commandes livrées
+CustomersMultID = Customers.merge(
+    DelivOrders, on='customer_id',
+    how='right').groupby('customer_unique_id').count()['customer_id'][
+        Customers.merge(DelivOrders, on='customer_id', how='right').groupby(
+            'customer_unique_id').count()['customer_id'] >= 2].reset_index(
+            ).drop(columns='customer_id')
+
+# %%
+# dataframe clients ayant réalisés plus de 2 commandes
+CustomersMulti = CustomersMultID.merge(Customers,
+                                       on='customer_unique_id',
+                                       how='left')
+
+# %% [markdown]
 #### Analyse données produits
 # %%
 # ajouts noms des produits en anglais aux données de produits
@@ -218,12 +285,12 @@ Products10CatDum = pd.get_dummies(Products10Cat,
                                   columns=['product_category_name'])
 # %% [markdown]
 #### Analyse des produits commandés
-
 # %%
 # merge items et données produits
 ItemsProd = Items.merge(Products10CatDum, on='product_id', how='left')
 # %%
-# nombre d'objets acheté dans une commande et somme des prix et des frais de port
+# nombre d'objets par catégories achetés dans une commande et somme des prix et
+#  des frais de port
 ItemsMean = ItemsProd.groupby('order_id').agg({
     'order_item_id':
     'max',
@@ -252,6 +319,44 @@ ItemsMean = ItemsProd.groupby('order_id').agg({
     'product_category_name_toys_baby':
     'sum'
 }).reset_index()
+
+# %%
+# nombre d'objets par catégories achetés par une personne et somme des prix
+# et des frais de port
+DelivItemCust = CustomersMultID.merge(
+    Customers[['customer_unique_id', 'customer_id']],
+    on='customer_unique_id',
+    how='left').merge(
+        DelivOrders[['customer_id', 'order_id']], on='customer_id').merge(
+            ItemsMean, on='order_id',
+            how='left').groupby('customer_unique_id').agg({
+                'order_item_id':
+                'max',
+                'price':
+                'sum',
+                'freight_value':
+                'sum',
+                'product_category_name_art_media':
+                'sum',
+                'product_category_name_fashion_clothing_accessories':
+                'sum',
+                'product_category_name_flowers_gifts':
+                'sum',
+                'product_category_name_groceries_food_drink':
+                'sum',
+                'product_category_name_health_beauty':
+                'sum',
+                'product_category_name_home_furniture':
+                'sum',
+                'product_category_name_industry_security':
+                'sum',
+                'product_category_name_technology':
+                'sum',
+                'product_category_name_tools_car':
+                'sum',
+                'product_category_name_toys_baby':
+                'sum'
+            }).reset_index()
 # %% [markdown]
 #### Analyse des données de localisation
 # %%
@@ -263,77 +368,29 @@ Geolocation = Geolocation.groupby(
 Geolocation.head(3)
 
 # %% [markdown]
-#### Analyse données commandes
+#### Analyse des notes/commentaires
 # %%
-# état de la commande
-Orders.order_status.value_counts()
-# %% [markdown]
-# On ne va conserver que les commandes livrées et donc supprimer la colonne status. On
-# conserve les colonnes n'ayant pas de valeurs manquantes. On conserve les données
-# de date d'achat et de date de livraison estimée que l'on va mettre au format datetime
-# %%
-DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(axis=1).drop(
-    columns='order_status')
-# %%
-DelivOrders[['order_purchase_timestamp',
-             'order_estimated_delivery_date']] = DelivOrders[[
-                 'order_purchase_timestamp', 'order_estimated_delivery_date'
-             ]].astype('datetime64[ns]')
-
-# %%
-# visualisation du nombre de commandes par jours
-fig = px.line(DelivOrders.groupby(
-    DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
-              title='Nombre de commandes par jours',
-              labels=dict(value='Nombre de commandes',
-                          order_purchase_timestamp='Date'))
-fig.update_layout(showlegend=False)
-fig.show(renderer='notebook')
-if write_data is True:
-    fig.write_image('./Figures/NbCommandesJ.pdf')
-
-# %%
-# visualisation du nombre de commandes par mois
-DelivOrdersM = DelivOrders.groupby(
-    DelivOrders.order_purchase_timestamp.dt.to_period('M')).count()['order_id']
-DelivOrdersM.index = DelivOrdersM.index.astype('datetime64[M]')
-DelivOrdersM = DelivOrdersM.reset_index()
-fig = px.bar(DelivOrdersM,
-             x='order_purchase_timestamp',
-             y='order_id',
-             title='Nombre de commandes par mois',
-             labels=dict(order_id='Nombre de commandes',
-                         order_purchase_timestamp='Date'),
-             height=300,
-             width=800)
-fig.update_xaxes(dtick='M1', tickformat="%b\n%Y")
-fig.update_layout(showlegend=False)
-fig.show(renderer='notebook')
-if write_data is True:
-    fig.write_image('./Figures/NbCommandesM.pdf')
-
-# %% [markdown]
-#### Analyse données clients
-# %%
-# identifiant des clients ayant réalisés plus de 2 commandes
-CustomersMultID = Customers.groupby('customer_unique_id').count(
-)['customer_id'][Customers.groupby('customer_unique_id').count()['customer_id']
-                 >= 2].reset_index().drop(columns='customer_id')
-
-# %%
-# dataframe clients ayant réalisés plus de 2 commandes
-CustomersMulti = CustomersMultID.merge(Customers,
-                                       on='customer_unique_id',
-                                       how='left')
+NoteMean = CustomersMultID.merge(
+    Customers[['customer_unique_id', 'customer_id']],
+    on='customer_unique_id',
+    how='left').merge(DelivOrders[['customer_id', 'order_id']],
+                      on='customer_id').merge(
+                          Reviews, on='order_id',
+                          how='left').groupby('customer_unique_id').mean(
+                              'review_score').reset_index()
 # %%
 # agrégation des autres jeux de données entre eux
-Data = CustomersMulti.merge(DelivOrders, on='customer_id', how='left').merge(
-    ItemsMean, on='order_id',
-    how='left').merge(Reviews, on='order_id', how='left').merge(
-        Products, on='product_id', how='left').merge(
-            Geolocation,
-            left_on='customer_zip_code_prefix',
-            right_on='geolocation_zip_code_prefix',
-            how='left').drop(columns='geolocation_zip_code_prefix')
+Data = CustomersMulti.drop(
+    columns='customer_id').drop_duplicates('customer_unique_id').merge(
+        DelivItemCust, on='customer_unique_id').merge(
+            NoteMean, on='customer_unique_id').merge(
+                Geolocation,
+                left_on='customer_zip_code_prefix',
+                right_on='geolocation_zip_code_prefix').drop(
+                    columns='geolocation_zip_code_prefix')
 
 # %%
+Data['total_items'] = Data.loc[:,
+                               Data.columns.str.
+                               contains('product_category_name')].sum(axis=1)
+                               
