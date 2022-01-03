@@ -215,6 +215,39 @@ CustomersMulti = CustomersMultID.merge(Customers,
                                        how='left')
 
 # %% [markdown]
+# calcul du temps moyen entre les commandes de chaques clients
+# %%
+# création d'une colonne par date de commande pour chaques clients
+Date = CustomersMultID.merge(
+    Customers[['customer_unique_id', 'customer_id']],
+    on='customer_unique_id',
+    how='left').merge(DelivOrders, on='customer_id').groupby(
+        'customer_unique_id').order_purchase_timestamp.unique().apply(
+            pd.Series).reset_index()
+
+# temps entre deux commandes
+for col in range(0, 14):
+    Date['diff_date_commande' + str(col)] = abs(
+        Date.dropna(subset=[col + 1])[col].sub(
+            Date.dropna(subset=[col + 1])[col + 1]))
+# %%
+# temps moyen entre les commandes d'un client
+DateDiff = Date.drop(columns=[*range(0, 15)]).dropna(
+    subset=['diff_date_commande0']).set_index('customer_unique_id')
+DateDiffMean = DateDiff.mean(axis=1).reset_index().rename(
+    columns={0: 'date_commande_mean_dif'})
+DateDiffMean[
+    'date_commande_mean_dif_days'] = DateDiffMean.date_commande_mean_dif.dt.round(
+        '1d').dt.days
+DateDiffMean.drop(columns=('date_commande_mean_dif'), inplace=True)
+DateDiffMean.head(3)
+# temps moyen entre deux commande pour tous les clients
+print('Temps moyen entre deux commandes {} jours'.format(
+    round(DateDiffMean.date_commande_mean_dif_days.mean(), 0)))
+# %% [markdown]
+# Il peut être intéressant de renouveller le modèle tout les 3 mois étant donné que
+# c'est la durée moyenne entre 2 commandes
+# %% [markdown]
 #### Analyse données produits
 # %%
 # ajouts noms des produits en anglais aux données de produits
@@ -370,6 +403,7 @@ Geolocation.head(3)
 # %% [markdown]
 #### Analyse des notes/commentaires
 # %%
+# calcul de la moyenne des notes laissées par un client
 NoteMean = CustomersMultID.merge(
     Customers[['customer_unique_id', 'customer_id']],
     on='customer_unique_id',
@@ -393,4 +427,5 @@ Data = CustomersMulti.drop(
 Data['total_items'] = Data.loc[:,
                                Data.columns.str.
                                contains('product_category_name')].sum(axis=1)
-                               
+
+# %%
