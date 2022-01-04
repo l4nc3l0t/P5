@@ -248,6 +248,52 @@ print('Temps moyen entre deux commandes {} jours'.format(
 # Il peut être intéressant de renouveller le modèle tout les 3 mois étant donné que
 # c'est la durée moyenne entre 2 commandes
 # %% [markdown]
+#### Analyse des données de paiement
+# %%
+Payments.payment_type.unique()
+# %%
+# selection des paiements de commandes livrées
+DelivPayments = DelivOrders[['order_id', 'customer_id']].merge(
+    Payments, on='order_id',
+    how='left').drop(columns={'payment_sequential', 'payment_installments'})
+# %%
+# groupement par commande et calcule du total payé et de la part payée en bon d'achat
+DelivPaymentsVouch = DelivPayments.groupby('order_id').sum(
+    'payment_value').reset_index().rename(columns={
+        'payment_value': 'payement_total'
+    }).merge(DelivPayments[DelivPayments.payment_type == 'voucher'].groupby(
+        'order_id').sum('payement_value').reset_index().rename(
+            columns={'payment_value': 'voucher_payment'}),
+             on='order_id',
+             how='right')
+# calcul du pourcentage de la part des paiements en bon d'achat
+DelivPaymentsVouch[
+    'voucher_percent_part'] = DelivPaymentsVouch.voucher_payment.div(
+        DelivPaymentsVouch.payement_total).mul(100)
+# rassemblements des données de payements et des calculs effectués
+PaymentsGroup = DelivPayments.groupby('order_id').sum('payement_value').merge(
+    DelivPaymentsVouch[['order_id', 'voucher_percent_part']],
+    on='order_id',
+    how='outer').fillna(0)
+# %%
+# groupement par client et calcul de la somme des ses achats et de la moyenne du
+# pourcentage de la part payée par bon d'achat
+PaymentsCust = CustomersMultID.merge(
+    Customers[['customer_unique_id', 'customer_id']],
+    on='customer_unique_id',
+    how='left').merge(DelivOrders[['customer_id', 'order_id']],
+                      on='customer_id').merge(
+                          PaymentsGroup, on='order_id',
+                          how='left').groupby('customer_unique_id').agg({
+                              'payment_value': {'sum', 'mean'},
+                              'voucher_percent_part':
+                              'mean'
+                          }).reset_index()
+PaymentsCust['total_payement'] = PaymentsCust.payment_value['sum']
+PaymentsCust['mean_payement'] = PaymentsCust.payment_value['mean']
+PaymentsCust.columns = PaymentsCust.columns.droplevel(1)
+PaymentsCust.drop(columns='payment_value', inplace=True)
+# %% [markdown]
 #### Analyse données produits
 # %%
 # ajouts noms des produits en anglais aux données de produits
@@ -418,10 +464,11 @@ Data = CustomersMulti.drop(
     columns='customer_id').drop_duplicates('customer_unique_id').merge(
         DelivItemCust, on='customer_unique_id').merge(
             NoteMean, on='customer_unique_id').merge(
-                Geolocation,
-                left_on='customer_zip_code_prefix',
-                right_on='geolocation_zip_code_prefix').drop(
-                    columns='geolocation_zip_code_prefix')
+                PaymentsCust, on='customer_unique_id').merge(
+                    Geolocation,
+                    left_on='customer_zip_code_prefix',
+                    right_on='geolocation_zip_code_prefix').drop(
+                        columns='geolocation_zip_code_prefix')
 
 # %%
 Data['total_items'] = Data.loc[:,
