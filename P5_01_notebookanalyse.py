@@ -4,8 +4,13 @@
 # %%
 import os
 import pandas as pd
-import numpy as numpy
+import numpy as np
 import plotly.express as px
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+from P5_00_fonctions import visuPCA
 
 # %%
 write_data = True
@@ -435,7 +440,8 @@ DelivItemCust = CustomersMultID.merge(
                 'sum',
                 'product_category_name_toys_baby':
                 'sum'
-            }).reset_index()
+            }).reset_index().rename(
+                columns={'order_item_id': 'max_items_order'})
 # %% [markdown]
 #### Analyse des données de localisation
 # %%
@@ -459,20 +465,62 @@ NoteMean = CustomersMultID.merge(
                           how='left').groupby('customer_unique_id').mean(
                               'review_score').reset_index()
 # %%
-# agrégation des autres jeux de données entre eux
+# agrégation des jeux de données entre eux
 Data = CustomersMulti.drop(
-    columns='customer_id').drop_duplicates('customer_unique_id').merge(
-        DelivItemCust, on='customer_unique_id').merge(
-            NoteMean, on='customer_unique_id').merge(
-                PaymentsCust, on='customer_unique_id').merge(
-                    Geolocation,
-                    left_on='customer_zip_code_prefix',
-                    right_on='geolocation_zip_code_prefix').drop(
-                        columns='geolocation_zip_code_prefix')
-
+    columns=['customer_id', 'customer_city', 'customer_state'
+             ]).drop_duplicates('customer_unique_id').merge(
+                 DelivItemCust, on='customer_unique_id').merge(
+                     DateDiffMean, on='customer_unique_id', how='left').merge(
+                         NoteMean, on='customer_unique_id').merge(
+                             PaymentsCust, on='customer_unique_id').merge(
+                                 Geolocation,
+                                 left_on='customer_zip_code_prefix',
+                                 right_on='geolocation_zip_code_prefix').drop(
+                                     columns='geolocation_zip_code_prefix')
+Data.date_commande_mean_dif_days.fillna(0, inplace=True)
 # %%
 Data['total_items'] = Data.loc[:,
                                Data.columns.str.
                                contains('product_category_name')].sum(axis=1)
 
+# %%
+if write_data is True:
+    Data.to_csv('OlistData.csv', index=False)
+
+# %%
+# ACP des features retenues avec l'energystar score
+numPCA = Data.select_dtypes('number').dropna().values
+ScaledPCA = make_pipeline(StandardScaler(), PCA())
+components = ScaledPCA.fit_transform(numPCA)
+pca = ScaledPCA.named_steps['pca']
+loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+
+# %%
+# visualisation de la variance expliquée de chaque composante (cumulée)
+exp_var_cum = np.cumsum(pca.explained_variance_ratio_)
+fig = px.area(x=range(1, exp_var_cum.shape[0] + 1),
+              y=exp_var_cum,
+              labels={
+                  'x': 'Composantes',
+                  'y': 'Variance expliquée cumulée'
+              })
+fig.update_layout(title='Scree plot')
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/ScreePlot.pdf', height=300)
+
+# %%
+# création des graphiques
+for a1, a2 in [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13],
+               [14, 15], [16, 17]]:
+    fig = visuPCA(Data.select_dtypes('number').dropna(),
+                  pca,
+                  components,
+                  loadings, [(a1, a2)],
+                  color=None)
+    fig.show(renderer='notebook')
+    if write_data is True:
+        fig.write_image('./Figures/PCAF{}F{}.pdf'.format(a1 + 1, a2 + 1),
+                        width=500,
+                        height=500)
 # %%
