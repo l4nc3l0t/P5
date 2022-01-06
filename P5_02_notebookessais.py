@@ -2,10 +2,14 @@
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.manifold import MDS, TSNE
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from P5_00_fonctions import visuPCA
 # %%
@@ -33,26 +37,55 @@ else:
 # %%
 OlistData = pd.read_csv('OlistData.csv')
 # %%
-Data = OlistData.drop(columns='customer_unique_id').dropna()
-ScaledData = StandardScaler().fit_transform(Data)
+DataRFM = OlistData[['last_purchase_days', 'orders_number',
+                     'mean_payement']].dropna()
+ScaledData = StandardScaler().fit_transform(DataRFM)
 
 # %%
-DataClustering = KMeans(n_clusters=4).fit(ScaledData)
-Clusters = DataClustering.predict(ScaledData)
+# MDS sur les 500 premières lignes
+stress = []
+for n_comp in range(2, 13):
+    mds = MDS(n_components=n_comp, n_jobs=-1)
+    ScaledData_fit = mds.fit(ScaledData[:500])
+    stress.append(mds.stress_)
 # %%
-fig = px.scatter_3d(components, x=0, y=1, z=2, color=DataClustering.labels_)
+fig = px.line(x=range(2, 13),
+              y=stress,
+              labels={
+                  'x': 'n_components',
+                  'y': 'stress'
+              })
 fig.show(renderer='notebook')
+# %%
+mds3 = MDS(n_components=4, n_jobs=-1)
+ScaledData_fit3 = mds3.fit(ScaledData[:500]).embedding_
+# %%
+fig = px.scatter_3d(ScaledData_fit3, x=0, y=1, z=2, color=3)
+fig.show(renderer='notebook')
+
+
 # %%
 distortions = []
-for i in range(1, 51):
+silhouettes = []
+for i in range(2, 23):
     km = KMeans(n_clusters=i)
     km.fit(ScaledData)
+    Clusters = km.predict(ScaledData)
     distortions.append(km.inertia_)
+    silhouettes.append(silhouette_score(ScaledData, Clusters))
 
-fig = px.line(x=range(1, 51), y=distortions)
+# %%
+fig = make_subplots(specs=[[{'secondary_y': True}]])
+fig.add_trace(go.Scatter(x=[*range(2, 23)], y=distortions, name='distortion'),
+              secondary_y=False)
+fig.add_trace(go.Scatter(x=[*range(2, 23)], y=silhouettes, name='silhouette'),
+              secondary_y=True)
+fig.update_xaxes(title_text='n_clusters')
+fig.update_yaxes(title_text="distortion", secondary_y=False)
+fig.update_yaxes(title_text="silhouette", secondary_y=True)
 fig.show(renderer='notebook')
 # %%
-# ACP des features retenues avec l'energystar score
+# ACP
 pca = PCA().fit(ScaledData)
 components = pca.transform(ScaledData)
 loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
@@ -73,16 +106,40 @@ if write_data is True:
 
 # %%
 # création des graphiques
-for a1, a2 in [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13],
-               [14, 15]]:
-    fig = visuPCA(Data,
+for a1, a2 in [[0, 1], [0, 2], [1, 2]]:
+    fig = visuPCA(DataRFM,
                   pca,
                   components,
                   loadings, [(a1, a2)],
-                  color=DataClustering.labels_)
+                  color=None)
     fig.show(renderer='notebook')
     if write_data is True:
         fig.write_image('./Figures/PCAKMeansF{}F{}.pdf'.format(a1 + 1, a2 + 1),
                         width=500,
                         height=500)
+# %%
+# %%
+# clustering KMeans
+DataClustering = KMeans(n_clusters=3).fit(ScaledData)
+ScaledData_KMeansTransformed = DataClustering.transform(ScaledData)
+Clusters = DataClustering.predict(ScaledData)
+# %%
+fig = px.scatter_3d(ScaledData_KMeansTransformed,
+                 x=0,
+                 y=1,
+                 z=2,
+                 color=DataClustering.labels_)
+fig.show(renderer='notebook')
+
+# %%
+# TSNE
+tsne = TSNE(n_components=2,
+            perplexity=50,
+            init='pca',
+            learning_rate='auto',
+            n_jobs=-1)
+ScaledData_TSNEfit = tsne.fit_transform(ScaledData)
+# %%
+fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=DataClustering.labels_)
+fig.show(renderer='notebook')
 # %%
