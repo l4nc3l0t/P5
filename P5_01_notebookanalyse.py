@@ -232,23 +232,23 @@ Date = CustomersMultID.merge(
 
 # temps entre deux commandes
 for col in range(0, 14):
-    Date['diff_date_commande' + str(col)] = abs(
+    Date['diff_date_order' + str(col)] = abs(
         Date.dropna(subset=[col + 1])[col].sub(
             Date.dropna(subset=[col + 1])[col + 1]))
 # %%
 # temps moyen entre les commandes d'un client
 DateDiff = Date.drop(columns=[*range(0, 15)]).dropna(
-    subset=['diff_date_commande0']).set_index('customer_unique_id')
+    subset=['diff_date_order0']).set_index('customer_unique_id')
 DateDiffMean = DateDiff.mean(axis=1).reset_index().rename(
-    columns={0: 'date_commande_mean_dif'})
+    columns={0: 'date_order_mean_dif'})
 DateDiffMean[
-    'date_commande_mean_dif_days'] = DateDiffMean.date_commande_mean_dif.dt.round(
+    'date_order_mean_dif_days'] = DateDiffMean.date_order_mean_dif.dt.round(
         '1d').dt.days
-DateDiffMean.drop(columns=('date_commande_mean_dif'), inplace=True)
+DateDiffMean.drop(columns=('date_order_mean_dif'), inplace=True)
 DateDiffMean.head(3)
 # temps moyen entre deux commande pour tous les clients
 print('Temps moyen entre deux commandes {} jours'.format(
-    round(DateDiffMean.date_commande_mean_dif_days.mean(), 0)))
+    round(DateDiffMean.date_order_mean_dif_days.mean(), 0)))
 # %% [markdown]
 # Il peut être intéressant de renouveller le modèle tout les 3 mois étant donné que
 # c'est la durée moyenne entre 2 commandes
@@ -344,10 +344,11 @@ cat_name = [
     'tools_car', 'industry_security'
 ]
 
+Products10Cat = Products.copy()
+# %%
 for subcat, cat in zip(subcat_str, cat_name):
-    Products10Cat = Products
-    Products10Cat.product_category_name[
-        Products10Cat.product_category_name.str.contains(subcat)] = cat
+    Products10Cat.loc[Products10Cat.product_category_name.str.contains(subcat),
+                      'product_category_name'] = cat
 # %%
 # liste des nouvelles catégories
 Products10Cat.product_category_name.unique()
@@ -441,7 +442,11 @@ DelivItemCust = CustomersMultID.merge(
                 'product_category_name_toys_baby':
                 'sum'
             }).reset_index().rename(
-                columns={'order_item_id': 'max_items_order'})
+                columns={
+                    'order_item_id': 'max_items_order',
+                    'price': 'total_price',
+                    'freight_value': 'total_freight_value'
+                })
 # %% [markdown]
 #### Analyse des données de localisation
 # %%
@@ -477,7 +482,7 @@ Data = CustomersMulti.drop(
                                  left_on='customer_zip_code_prefix',
                                  right_on='geolocation_zip_code_prefix').drop(
                                      columns='geolocation_zip_code_prefix')
-Data.date_commande_mean_dif_days.fillna(0, inplace=True)
+Data.date_order_mean_dif_days.fillna(0, inplace=True)
 # %%
 Data['total_items'] = Data.loc[:,
                                Data.columns.str.
