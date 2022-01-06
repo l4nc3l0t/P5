@@ -118,7 +118,6 @@ for a1, a2 in [[0, 1], [0, 2], [1, 2]]:
                         width=500,
                         height=500)
 # %%
-# %%
 # clustering KMeans
 DataClustering = KMeans(n_clusters=3).fit(ScaledData)
 ScaledData_KMeansTransformed = DataClustering.transform(ScaledData)
