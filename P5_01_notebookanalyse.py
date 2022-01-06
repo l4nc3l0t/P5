@@ -211,7 +211,7 @@ CustomersMultID = Customers.merge(
     how='right').groupby('customer_unique_id').count()['customer_id'][
         Customers.merge(DelivOrders, on='customer_id', how='right').groupby(
             'customer_unique_id').count()['customer_id'] >= 2].reset_index(
-            ).drop(columns='customer_id')
+            ).rename(columns={'customer_id': 'orders_number'})
 
 # %%
 # dataframe clients ayant réalisés plus de 2 commandes
@@ -252,6 +252,16 @@ print('Temps moyen entre deux commandes {} jours'.format(
 # %% [markdown]
 # Il peut être intéressant de renouveller le modèle tout les 3 mois étant donné que
 # c'est la durée moyenne entre 2 commandes
+# %%
+LastPurchase = CustomersMultID.merge(
+    Customers[['customer_unique_id', 'customer_id']],
+    on='customer_unique_id',
+    how='left').merge(DelivOrders, on='customer_id').groupby(
+        'customer_unique_id').order_purchase_timestamp.max().reset_index(
+        ).rename(columns={'order_purchase_timestamp': 'last_purchase_date'})
+LastPurchase['last_purchase_days'] = -(
+    LastPurchase.last_purchase_date -
+    LastPurchase.last_purchase_date.max()) / (np.timedelta64(1, 'D'))
 # %% [markdown]
 #### Analyse des données de paiement
 # %%
@@ -461,7 +471,7 @@ Geolocation.head(3)
 #### Analyse des notes/commentaires
 # %%
 # calcul de la moyenne des notes laissées par un client
-NoteMean = CustomersMultID.merge(
+NoteMean = CustomersMultID.drop(columns='orders_number').merge(
     Customers[['customer_unique_id', 'customer_id']],
     on='customer_unique_id',
     how='left').merge(DelivOrders[['customer_id', 'order_id']],
@@ -472,16 +482,18 @@ NoteMean = CustomersMultID.merge(
 # %%
 # agrégation des jeux de données entre eux
 Data = CustomersMulti.drop(
-    columns=['customer_id', 'customer_city', 'customer_state'
-             ]).drop_duplicates('customer_unique_id').merge(
-                 DelivItemCust, on='customer_unique_id').merge(
-                     DateDiffMean, on='customer_unique_id', how='left').merge(
-                         NoteMean, on='customer_unique_id').merge(
-                             PaymentsCust, on='customer_unique_id').merge(
-                                 Geolocation,
-                                 left_on='customer_zip_code_prefix',
-                                 right_on='geolocation_zip_code_prefix').drop(
-                                     columns='geolocation_zip_code_prefix')
+    columns=['customer_id', 'customer_city', 'customer_state']
+).drop_duplicates('customer_unique_id').merge(
+    DelivItemCust, on='customer_unique_id').merge(
+        DateDiffMean, on='customer_unique_id', how='left').merge(
+            LastPurchase[['customer_unique_id', 'last_purchase_days']],
+            on='customer_unique_id', how='left').merge(
+                NoteMean, on='customer_unique_id').merge(
+                    PaymentsCust, on='customer_unique_id').merge(
+                        Geolocation,
+                        left_on='customer_zip_code_prefix',
+                        right_on='geolocation_zip_code_prefix').drop(
+                            columns='geolocation_zip_code_prefix')
 Data.date_order_mean_dif_days.fillna(0, inplace=True)
 # %%
 Data['total_items'] = Data.loc[:,
