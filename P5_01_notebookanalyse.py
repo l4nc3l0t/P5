@@ -501,10 +501,6 @@ Data['total_items'] = Data.loc[:,
                                contains('product_category_name')].sum(axis=1)
 
 # %%
-if write_data is True:
-    Data.to_csv('OlistData.csv', index=False)
-
-# %%
 # ACP des features retenues avec l'energystar score
 numPCA = Data.select_dtypes('number').dropna().values
 ScaledPCA = make_pipeline(StandardScaler(), PCA())
@@ -540,4 +536,13 @@ for a1, a2 in [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13],
         fig.write_image('./Figures/PCAF{}F{}.pdf'.format(a1 + 1, a2 + 1),
                         width=500,
                         height=500)
+# %% [markdown]
+# Il est difficile d'observer des variables qui auraient plus d'importances
+# que d'autres ou d'en regrouper. Nous allons utiliser les méthodes de 
+# marketing traditionnelles : Recency (last_purchase_days),
+# Frequency (orders_number), Monetary (mean_payement)
 # %%
+DataRFM = Data[['last_purchase_days', 'orders_number',
+                     'mean_payement']].dropna()
+if write_data is True:
+    DataRFM.to_csv('OlistDataRFM.csv', index=False)
