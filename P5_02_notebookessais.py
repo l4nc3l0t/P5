@@ -9,7 +9,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, MeanShift, SpectralClustering, DBSCAN, \
+    OPTICS, Birch
 from sklearn.metrics import silhouette_score
 
 from P5_00_fonctions import visuPCA
@@ -95,19 +96,19 @@ fig.show(renderer='notebook')
 
 # %%
 distortions = []
-silhouettes = []
+silhouettesKM = []
 for i in range(2, 13):
     km = KMeans(n_clusters=i)
     km.fit(ScaledData)
-    Clusters = km.predict(ScaledData)
     distortions.append(km.inertia_)
-    silhouettes.append(silhouette_score(ScaledData, Clusters))
+    silhouettesKM.append(silhouette_score(ScaledData, km.labels_))
 
 # %%
 fig = make_subplots(specs=[[{'secondary_y': True}]])
 fig.add_trace(go.Scatter(x=[*range(2, 13)], y=distortions, name='distortion'),
               secondary_y=False)
-fig.add_trace(go.Scatter(x=[*range(2, 13)], y=silhouettes, name='silhouette'),
+fig.add_trace(go.Scatter(x=[*range(2, 13)], y=silhouettesKM,
+                         name='silhouette'),
               secondary_y=True)
 fig.update_xaxes(title_text='n_clusters')
 fig.update_yaxes(title_text="distortion", secondary_y=False)
@@ -116,26 +117,122 @@ fig.show(renderer='notebook')
 
 # %%
 # clustering KMeans
-DataClustering = KMeans(n_clusters=5).fit(ScaledData)
+KMeansClustering = KMeans(n_clusters=5).fit(ScaledData)
 # %%
 fig = px.scatter_3d(DataRFM,
                     x='last_purchase_days',
                     y='orders_number',
                     z='mean_payement',
-                    color=DataClustering.labels_)
+                    color=KMeansClustering.labels_)
 fig.show(renderer='notebook')
 
 # %%
 # TSNE
-tsne = TSNE(n_components=2,
-            perplexity=50,
-            init='pca',
-            learning_rate='auto',
-            n_jobs=-1)
-ScaledData_TSNEfit = tsne.fit_transform(ScaledData)
-# %%
-fig = px.scatter(ScaledData_TSNEfit,
-                 x=0,
-                 y=1,
-                 color=DataClustering.labels_)
+fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=KMeansClustering.labels_)
 fig.show(renderer='notebook')
+# %%
+# MeanShift
+MSClustering = MeanShift(n_jobs=-1).fit(ScaledData)
+# %%
+fig = px.scatter_3d(DataRFM,
+                    x='last_purchase_days',
+                    y='orders_number',
+                    z='mean_payement',
+                    color=MSClustering.labels_)
+fig.show(renderer='notebook')
+
+# %%
+fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=MSClustering.labels_)
+fig.show(renderer='notebook')
+
+# %%
+# SpectralClustering
+# %%
+silhouettesSC = []
+for i in range(2, 13):
+    sc = SpectralClustering(n_clusters=i,
+                            n_jobs=-1,
+                            affinity='nearest_neighbors')
+    sc.fit(ScaledData)
+    silhouettesSC.append(silhouette_score(ScaledData, sc.labels_))
+
+# %%
+fig = px.line(x=[*range(2, 13)], y=silhouettesSC)
+fig.update_xaxes(title_text='n_clusters')
+fig.update_yaxes(title_text="silhouette")
+fig.show(renderer='notebook')
+# %%
+SClustering = SpectralClustering(n_clusters=5,
+                                 affinity='nearest_neighbors',
+                                 n_jobs=-1).fit(ScaledData)
+# %%
+fig = px.scatter_3d(DataRFM,
+                    x='last_purchase_days',
+                    y='orders_number',
+                    z='mean_payement',
+                    color=SClustering.labels_)
+fig.show(renderer='notebook')
+
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=SClustering.labels_)
+fig.show(renderer='notebook')
+# %%
+# DBSCAN
+# %%
+silhouettesDB = []
+for i in range(1, 10):
+    db = DBSCAN(
+        eps=i,
+        n_jobs=-1,
+    )
+    db.fit(ScaledData)
+    silhouettesDB.append(silhouette_score(ScaledData, db.labels_))
+
+# %%
+fig = px.line(x=[*range(1, 10)], y=silhouettesDB)
+fig.update_xaxes(title_text='eps')
+fig.update_yaxes(title_text="silhouette")
+fig.show(renderer='notebook')
+# %%
+DBClustering = DBSCAN(eps=1, n_jobs=-1).fit(ScaledData)
+# %%
+fig = px.scatter_3d(DataRFM,
+                    x='last_purchase_days',
+                    y='orders_number',
+                    z='mean_payement',
+                    color=DBClustering.labels_)
+fig.show(renderer='notebook')
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=DBClustering.labels_)
+fig.show(renderer='notebook')
+# %%
+# Birch
+# %%
+silhouettesB = []
+for i in range(2, 10):
+    b = Birch(n_clusters=i)
+    b.fit(ScaledData)
+    silhouettesB.append(silhouette_score(ScaledData, b.labels_))
+
+# %%
+fig = px.line(x=[*range(2, 10)], y=silhouettesB)
+fig.update_xaxes(title_text='n_clusters')
+fig.update_yaxes(title_text="silhouette")
+fig.show(renderer='notebook')
+# %%
+BClustering = Birch(n_clusters=5).fit(ScaledData)
+# %%
+fig = px.scatter_3d(DataRFM,
+                    x='last_purchase_days',
+                    y='orders_number',
+                    z='mean_payement',
+                    color=BClustering.labels_)
+fig.show(renderer='notebook')
+
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=BClustering.labels_)
+fig.show(renderer='notebook')
+# %%
