@@ -50,14 +50,23 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
         pred_labels = paramodel.fit_predict(data)
         fit_pred_time = time() - start_time
         result = {
-            'model': str(paramodel).replace(', n_jobs=-1', ''),
-            'n_clusters': pred_labels.max() + 1,
-            'labels': paramodel.labels_,
-            'clusters_centers': paramodel.cluster_centers_,
+            'model':
+            str(paramodel).replace(', n_jobs=-1',
+                                   '').replace('n_jobs=-1', '').replace(
+                                       "affinity='nearest_neighbors', ", ''),
+            'n_clusters':
+            pred_labels.max() + 1,
+            'labels':
+            paramodel.labels_,
+            'clusters_centers':
+            paramodel.cluster_centers_
+            if hasattr(paramodel, 'cluster_centers_') else None,
             'inertia':
-            paramodel.inertia_ if hasattr(model, 'inertia_') else None,
-            'time': fit_pred_time,
-            'silhouette_score': silhouette_score(data, pred_labels),
+            paramodel.inertia_ if hasattr(paramodel, 'inertia_') else None,
+            'time':
+            fit_pred_time,
+            'silhouette_score':
+            silhouette_score(data, pred_labels),
             'calinski_harabasz_score':
             calinski_harabasz_score(data, pred_labels)
         }
@@ -71,7 +80,7 @@ import plotly.graph_objects as go
 
 # visualisation des scores des modèles de classification
 def graphScores(Results):
-    if Results.inertia.unique() == None:
+    if (Results.inertia.unique().all() == None) is True:
         fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
         fig.add_trace(go.Scatter(x=[*Results.model],
                                  y=[*Results.silhouette_score],
