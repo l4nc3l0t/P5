@@ -33,3 +33,84 @@ def visuPCA(df, pca, components, loadings, axis, color=None):
         yaxis_title='F{} '.format(f2 + 1) + '(' + str(
             (pca.explained_variance_ratio_[f2] * 100).round(2)) + '%' + ')')
     return (fig)
+
+
+from time import time
+from sklearn.metrics import silhouette_score, calinski_harabasz_score
+
+# variation d'un paramètre de modèle de classification
+def searchClusters(model, data, paramfix: dict, paramtuned: str,
+                   paramrange: list):
+    Results = pd.DataFrame()
+    for paramval in paramrange:
+        paramfix[paramtuned] = paramval
+        paramodel = model(**paramfix)
+        start_time = time()
+        pred_labels = paramodel.fit_predict(data)
+        fit_pred_time = time() - start_time
+        result = {
+            'model': str(paramodel).replace(', n_jobs=-1', ''),
+            'n_clusters': pred_labels.max() + 1,
+            'clusters_centers': paramodel.cluster_centers_,
+            'inertia':
+            paramodel.inertia_ if hasattr(model, 'inertia_') else None,
+            'time': fit_pred_time,
+            'silhouette_score': silhouette_score(data, pred_labels),
+            'calinski_harabasz_score':
+            calinski_harabasz_score(data, pred_labels)
+        }
+        Results = Results.append(result, ignore_index=True)
+    return Results
+
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+
+# visualisation des scores des modèles de classification
+def graphScores(Results):
+    if Results.inertia.unique() == None:
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.silhouette_score],
+                                 name='Silhouette'),
+                      row=1,
+                      col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.calinski_harabasz_score],
+                                 name='Calinski Harabasz'),
+                      row=2,
+                      col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.time],
+                                 name='Temps'),
+                      row=3,
+                      col=1)
+        fig.update_yaxes(title_text='secondes', row=3, col=1)
+    else:
+        fig = make_subplots(rows=4, cols=1, shared_xaxes=True)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.silhouette_score],
+                                 name='Silhouette'),
+                      row=1,
+                      col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.calinski_harabasz_score],
+                                 name='Calinski Harabasz'),
+                      row=2,
+                      col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.inertia],
+                                 name='Distortion'),
+                      row=3,
+                      col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.time],
+                                 name='Temps'),
+                      row=4,
+                      col=1)
+
+        fig.update_yaxes(title_text='secondes', row=4, col=1)
+    fig.update_layout(
+        title_text=
+        'Visualisation des scores et du temps de classification<br>selon le paramètre du modèle'
+    )
+    return fig
