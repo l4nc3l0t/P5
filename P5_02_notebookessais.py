@@ -9,11 +9,11 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE
-from sklearn.cluster import KMeans, MeanShift, SpectralClustering, DBSCAN, \
-    OPTICS, Birch
+from sklearn.cluster import KMeans, AgglomerativeClustering, MeanShift, \
+    SpectralClustering, DBSCAN, OPTICS, Birch
 from sklearn.metrics import silhouette_score
 
-from P5_00_fonctions import visuPCA
+from P5_00_fonctions import visuPCA, searchClusters, graphScores, graphClusters
 # %%
 write_data = True
 
@@ -39,7 +39,8 @@ else:
 # %%
 DataRFM = pd.read_csv('OlistDataRFM.csv')
 # %%
-ScaledData = StandardScaler().fit_transform(DataRFM)
+Data_fit = StandardScaler().fit(DataRFM)
+ScaledData = Data_fit.transform(DataRFM)
 # %%
 # ACP
 pca = PCA().fit(ScaledData)
@@ -61,7 +62,7 @@ if write_data is True:
     fig.write_image('./Figures/ScreePlotRFM.pdf', height=300)
 
 # %%
-# graph PCA 3D
+# graph PCA 3D
 fig = px.scatter_3d(components, x=0, y=1, z=2)
 fig.show(renderer='notebook')
 # %%
@@ -73,7 +74,7 @@ for a1, a2 in [[0, 1], [0, 2], [1, 2]]:
         fig.write_image('./Figures/PCARFMF{}F{}.pdf'.format(a1 + 1, a2 + 1),
                         width=500,
                         height=500)
-
+"""
 # %%
 # MDS
 mds3 = MDS(n_components=3, n_jobs=-1)
@@ -81,7 +82,7 @@ ScaledData_transformed3 = mds3.fit(ScaledData).embedding_
 # %%
 fig = px.scatter_3d(ScaledData_transformed3, x=0, y=1, z=2)
 fig.show(renderer='notebook')
-
+"""
 # %%
 # TSNE
 tsne = TSNE(n_components=2,
@@ -94,42 +95,6 @@ ScaledData_TSNEfit = tsne.fit_transform(ScaledData)
 fig = px.scatter(ScaledData_TSNEfit, x=0, y=1)
 fig.show(renderer='notebook')
 
-# %%
-distortions = []
-silhouettesKM = []
-for i in range(2, 13):
-    km = KMeans(n_clusters=i)
-    km.fit(ScaledData)
-    distortions.append(km.inertia_)
-    silhouettesKM.append(silhouette_score(ScaledData, km.labels_))
-
-# %%
-fig = make_subplots(specs=[[{'secondary_y': True}]])
-fig.add_trace(go.Scatter(x=[*range(2, 13)], y=distortions, name='distortion'),
-              secondary_y=False)
-fig.add_trace(go.Scatter(x=[*range(2, 13)], y=silhouettesKM,
-                         name='silhouette'),
-              secondary_y=True)
-fig.update_xaxes(title_text='n_clusters')
-fig.update_yaxes(title_text="distortion", secondary_y=False)
-fig.update_yaxes(title_text="silhouette", secondary_y=True)
-fig.show(renderer='notebook')
-
-# %%
-# clustering KMeans
-KMeansClustering = KMeans(n_clusters=5).fit(ScaledData)
-# %%
-fig = px.scatter_3d(DataRFM,
-                    x='last_purchase_days',
-                    y='orders_number',
-                    z='mean_payement',
-                    color=KMeansClustering.labels_)
-fig.show(renderer='notebook')
-
-# %%
-# TSNE
-fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=KMeansClustering.labels_)
-fig.show(renderer='notebook')
 # %%
 # MeanShift
 MSClustering = MeanShift(n_jobs=-1).fit(ScaledData)
@@ -178,7 +143,7 @@ fig.show(renderer='notebook')
 fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=SClustering.labels_)
 fig.show(renderer='notebook')
 # %%
-# DBSCAN
+# DBSCAN
 # %%
 silhouettesDB = []
 for i in range(1, 10):
@@ -234,5 +199,23 @@ fig.show(renderer='notebook')
 # %%
 # TSNE
 fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=BClustering.labels_)
+fig.show(renderer='notebook')
+
+# %%
+KMeansClusters = searchClusters(KMeans, ScaledData, {}, 'n_clusters',
+                                [*range(2, 13)])
+
+# %%
+fig = graphScores(KMeansClusters)
+fig.show(renderer='notebook')
+
+# %%
+best_result = KMeansClusters.sort_values(by='silhouette_score',
+                                         ascending=False).iloc[0]
+# %%
+fig = graphClusters(
+    'KMeans', DataRFM, best_result.labels,
+    pd.DataFrame(Data_fit.inverse_transform(best_result.clusters_centers),
+                 columns=DataRFM.columns))
 fig.show(renderer='notebook')
 # %%
