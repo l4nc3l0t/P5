@@ -38,6 +38,7 @@ def visuPCA(df, pca, components, loadings, axis, color=None):
 from time import time
 from sklearn.metrics import silhouette_score, calinski_harabasz_score
 
+
 # variation d'un paramètre de modèle de classification
 def searchClusters(model, data, paramfix: dict, paramtuned: str,
                    paramrange: list):
@@ -51,6 +52,7 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
         result = {
             'model': str(paramodel).replace(', n_jobs=-1', ''),
             'n_clusters': pred_labels.max() + 1,
+            'labels': paramodel.labels_,
             'clusters_centers': paramodel.cluster_centers_,
             'inertia':
             paramodel.inertia_ if hasattr(model, 'inertia_') else None,
@@ -62,8 +64,10 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
         Results = Results.append(result, ignore_index=True)
     return Results
 
+
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+
 
 # visualisation des scores des modèles de classification
 def graphScores(Results):
@@ -113,4 +117,28 @@ def graphScores(Results):
         title_text=
         'Visualisation des scores et du temps de classification<br>selon le paramètre du modèle'
     )
+    return fig
+
+
+# graph data avec couleurs par clusters et centroïdes
+def graphClusters(modelname, data, labels: list, clusters_centers=None):
+    fig = px.scatter_3d(data,
+                        x='last_purchase_days',
+                        y='orders_number',
+                        z='mean_payement',
+                        title='Clusters créés par {}'.format(modelname),
+                        color=labels.astype(str))
+    if clusters_centers is not None:
+        fig.add_trace(
+            go.Scatter3d(
+                x=clusters_centers['last_purchase_days'],
+                y=clusters_centers['orders_number'],
+                z=clusters_centers['mean_payement'],
+                mode='markers',
+                marker_symbol='x',
+                hovertemplate=
+                "recency: %{x}<br>frequency: %{y}<br>monetary: %{z}",
+                name="Cluster center",
+            ))
+    fig.update_layout(coloraxis_colorbar=dict(yanchor='top', y=.9))
     return fig
