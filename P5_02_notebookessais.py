@@ -9,8 +9,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE
-from sklearn.cluster import KMeans, AgglomerativeClustering, MeanShift, \
-    SpectralClustering, DBSCAN, OPTICS, Birch
+from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering, \
+    DBSCAN, OPTICS, Birch
 from sklearn.metrics import silhouette_score
 
 from P5_00_fonctions import visuPCA, searchClusters, graphScores, graphClusters
@@ -91,131 +91,106 @@ tsne = TSNE(n_components=2,
             learning_rate='auto',
             n_jobs=-1)
 ScaledData_TSNEfit = tsne.fit_transform(ScaledData)
-# %%
+
 fig = px.scatter(ScaledData_TSNEfit, x=0, y=1)
 fig.show(renderer='notebook')
 
 # %%
-# MeanShift
-MSClustering = MeanShift(n_jobs=-1).fit(ScaledData)
-# %%
-fig = px.scatter_3d(DataRFM,
-                    x='last_purchase_days',
-                    y='orders_number',
-                    z='mean_payement',
-                    color=MSClustering.labels_)
-fig.show(renderer='notebook')
-
-# %%
-fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=MSClustering.labels_)
-fig.show(renderer='notebook')
-
-# %%
-# SpectralClustering
-# %%
-silhouettesSC = []
-for i in range(2, 13):
-    sc = SpectralClustering(n_clusters=i,
-                            n_jobs=-1,
-                            affinity='nearest_neighbors')
-    sc.fit(ScaledData)
-    silhouettesSC.append(silhouette_score(ScaledData, sc.labels_))
-
-# %%
-fig = px.line(x=[*range(2, 13)], y=silhouettesSC)
-fig.update_xaxes(title_text='n_clusters')
-fig.update_yaxes(title_text="silhouette")
-fig.show(renderer='notebook')
-# %%
-SClustering = SpectralClustering(n_clusters=5,
-                                 affinity='nearest_neighbors',
-                                 n_jobs=-1).fit(ScaledData)
-# %%
-fig = px.scatter_3d(DataRFM,
-                    x='last_purchase_days',
-                    y='orders_number',
-                    z='mean_payement',
-                    color=SClustering.labels_)
-fig.show(renderer='notebook')
-
-# %%
-# TSNE
-fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=SClustering.labels_)
-fig.show(renderer='notebook')
-# %%
-# DBSCAN
-# %%
-silhouettesDB = []
-for i in range(1, 10):
-    db = DBSCAN(
-        eps=i,
-        n_jobs=-1,
-    )
-    db.fit(ScaledData)
-    silhouettesDB.append(silhouette_score(ScaledData, db.labels_))
-
-# %%
-fig = px.line(x=[*range(1, 10)], y=silhouettesDB)
-fig.update_xaxes(title_text='eps')
-fig.update_yaxes(title_text="silhouette")
-fig.show(renderer='notebook')
-# %%
-DBClustering = DBSCAN(eps=1, n_jobs=-1).fit(ScaledData)
-# %%
-fig = px.scatter_3d(DataRFM,
-                    x='last_purchase_days',
-                    y='orders_number',
-                    z='mean_payement',
-                    color=DBClustering.labels_)
-fig.show(renderer='notebook')
-# %%
-# TSNE
-fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=DBClustering.labels_)
-fig.show(renderer='notebook')
-# %%
-# Birch
-# %%
-silhouettesB = []
-for i in range(2, 10):
-    b = Birch(n_clusters=i)
-    b.fit(ScaledData)
-    silhouettesB.append(silhouette_score(ScaledData, b.labels_))
-
-# %%
-fig = px.line(x=[*range(2, 10)], y=silhouettesB)
-fig.update_xaxes(title_text='n_clusters')
-fig.update_yaxes(title_text="silhouette")
-fig.show(renderer='notebook')
-# %%
-BClustering = Birch(n_clusters=5).fit(ScaledData)
-# %%
-fig = px.scatter_3d(DataRFM,
-                    x='last_purchase_days',
-                    y='orders_number',
-                    z='mean_payement',
-                    color=BClustering.labels_)
-fig.show(renderer='notebook')
-
-# %%
-# TSNE
-fig = px.scatter(ScaledData_TSNEfit, x=0, y=1, color=BClustering.labels_)
-fig.show(renderer='notebook')
-
-# %%
+# KMeans
 KMeansClusters = searchClusters(KMeans, ScaledData, {}, 'n_clusters',
                                 [*range(2, 13)])
-
-# %%
 fig = graphScores(KMeansClusters)
 fig.show(renderer='notebook')
 
 # %%
-best_result = KMeansClusters.sort_values(by='silhouette_score',
+best_KMeans = KMeansClusters.sort_values(by='silhouette_score',
                                          ascending=False).iloc[0]
-# %%
 fig = graphClusters(
-    'KMeans', DataRFM, best_result.labels,
-    pd.DataFrame(Data_fit.inverse_transform(best_result.clusters_centers),
+    'KMeans', DataRFM, best_KMeans.labels,
+    pd.DataFrame(Data_fit.inverse_transform(best_KMeans.clusters_centers),
                  columns=DataRFM.columns))
 fig.show(renderer='notebook')
+# %%
+# SpectralClustering
+SpectralClusters = searchClusters(SpectralClustering, ScaledData, {
+    'n_jobs': -1,
+    'affinity': 'nearest_neighbors'
+}, 'n_clusters', [*range(2, 13)])
+fig = graphScores(SpectralClusters)
+fig.show(renderer='notebook')
+
+# %%
+best_Spectral = SpectralClusters.sort_values(by='silhouette_score',
+                                             ascending=False).iloc[0]
+fig = graphClusters('SpectralClustering', DataRFM, best_Spectral.labels)
+fig.show(renderer='notebook')
+
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit,
+                 x=0,
+                 y=1,
+                 color=best_Spectral.labels.astype(str))
+fig.show(renderer='notebook')
+
+# %%
+# AgglomerativeClustering
+AggloClusters = searchClusters(AgglomerativeClustering, ScaledData, {},
+                               'n_clusters', range(2, 13))
+fig = graphScores(AggloClusters)
+fig.show(renderer='notebook')
+
+# %%
+best_Agglo = AggloClusters.sort_values(by='silhouette_score',
+                                       ascending=False).iloc[0]
+fig = graphClusters('AgglomerativeClusters', DataRFM, best_Agglo.labels)
+fig.show(renderer='notebook')
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit,
+                 x=0,
+                 y=1,
+                 color=best_Agglo.labels.astype(str))
+fig.show(renderer='notebook')
+# %%
+# DBSCAN
+DBSCANClusters = searchClusters(
+    DBSCAN, ScaledData, {'n_jobs': -1}, 'eps',
+    [round(e, 2) for e in np.linspace(.2, 1.9, 10)])
+fig = graphScores(DBSCANClusters)
+fig.show(renderer='notebook')
+
+# %%
+best_DBSCAN = DBSCANClusters.sort_values(by='silhouette_score',
+                                         ascending=False).iloc[0]
+fig = graphClusters('DBSCAN', DataRFM, best_DBSCAN.labels)
+fig.show(renderer='notebook')
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit,
+                 x=0,
+                 y=1,
+                 color=best_DBSCAN.labels.astype(str))
+fig.show(renderer='notebook')
+# %%
+# Birch
+BirchClusters = searchClusters(Birch, ScaledData, {}, 'n_clusters',
+                               [*range(2, 13)])
+fig = graphScores(BirchClusters)
+fig.show(renderer='notebook')
+
+# %%
+best_Birch = BirchClusters.sort_values(by='silhouette_score',
+                                       ascending=False).iloc[0]
+fig = graphClusters('Birch', DataRFM, best_Birch.labels)
+fig.show(renderer='notebook')
+
+# %%
+# TSNE
+fig = px.scatter(ScaledData_TSNEfit,
+                 x=0,
+                 y=1,
+                 color=best_Birch.labels.astype(str))
+fig.show(renderer='notebook')
+
 # %%
