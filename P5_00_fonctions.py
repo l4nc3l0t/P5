@@ -90,7 +90,7 @@ def graphScores(Results):
                       col=1)
         fig.add_trace(go.Scatter(x=[*Results.model],
                                  y=[*Results.calinski_harabasz_score],
-                                 name='Calinski Harabasz'),
+                                 name='Calinski-Harabasz'),
                       row=2,
                       col=1)
         fig.add_trace(go.Scatter(x=[*Results.model],
