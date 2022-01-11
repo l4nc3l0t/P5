@@ -487,13 +487,13 @@ Data = CustomersMulti.drop(
     DelivItemCust, on='customer_unique_id').merge(
         DateDiffMean, on='customer_unique_id', how='left').merge(
             LastPurchase[['customer_unique_id', 'last_purchase_days']],
-            on='customer_unique_id', how='left').merge(
-                NoteMean, on='customer_unique_id').merge(
-                    PaymentsCust, on='customer_unique_id').merge(
-                        Geolocation,
-                        left_on='customer_zip_code_prefix',
-                        right_on='geolocation_zip_code_prefix').drop(
-                            columns='geolocation_zip_code_prefix')
+            on='customer_unique_id',
+            how='left').merge(NoteMean, on='customer_unique_id').merge(
+                PaymentsCust, on='customer_unique_id').merge(
+                    Geolocation,
+                    left_on='customer_zip_code_prefix',
+                    right_on='geolocation_zip_code_prefix').drop(
+                        columns='geolocation_zip_code_prefix')
 Data.date_order_mean_dif_days.fillna(0, inplace=True)
 # %%
 Data['total_items'] = Data.loc[:,
@@ -538,11 +538,22 @@ for a1, a2 in [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13],
                         height=500)
 # %% [markdown]
 # Il est difficile d'observer des variables qui auraient plus d'importances
-# que d'autres ou d'en regrouper. Nous allons utiliser les méthodes de 
+# que d'autres ou d'en regrouper. Nous allons utiliser les méthodes de
 # marketing traditionnelles : Recency (last_purchase_days),
 # Frequency (orders_number), Monetary (mean_payement)
 # %%
 DataRFM = Data[['last_purchase_days', 'orders_number',
-                     'mean_payement']].dropna()
+                'mean_payement']].dropna()
 if write_data is True:
     DataRFM.to_csv('OlistDataRFM.csv', index=False)
+
+# %%
+# visualisation des données RFM
+for col in DataRFM.columns:
+    fig = px.histogram(DataRFM[col], marginal='box')
+    fig.update_layout(
+        title='Histogramme et diagramme en boite des données<br>de {}'.format(
+            col))
+    fig.show(renderer='notebook')
+    if write_data is True:
+        fig.write_image('./Figures/HistRFM{}.pdf'.format(col))
