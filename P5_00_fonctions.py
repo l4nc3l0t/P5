@@ -36,7 +36,8 @@ def visuPCA(df, pca, components, loadings, axis, color=None):
 
 
 from time import time
-from sklearn.metrics import silhouette_score, calinski_harabasz_score
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, \
+    davies_bouldin_score
 
 
 # variation d'un paramètre de modèle de classification
@@ -52,9 +53,9 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
         result = {
             'model':
             str(paramodel).replace(' ', '').replace(',', '').replace(
-                'n_jobs=-1',
-                '').replace('random_state=50',
-                            '').replace("affinity='nearest_neighbors'", ''),
+                '\n', '').replace('n_jobs=-1',
+                                  '').replace('random_state=50', '').replace(
+                                      "affinity='nearest_neighbors'", ''),
             'n_clusters':
             pred_labels.max() + 1,
             'labels':
@@ -69,7 +70,9 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
             'silhouette_score':
             silhouette_score(data, pred_labels),
             'calinski_harabasz_score':
-            calinski_harabasz_score(data, pred_labels)
+            calinski_harabasz_score(data, pred_labels),
+            'davies_bouldin_score':
+            davies_bouldin_score(data, pred_labels)
         }
         Results = Results.append(result, ignore_index=True)
     return Results
@@ -94,11 +97,10 @@ def graphScores(Results):
                       row=2,
                       col=1)
         fig.add_trace(go.Scatter(x=[*Results.model],
-                                 y=[*Results.time],
-                                 name='Temps'),
+                                 y=[*Results.davies_bouldin_score],
+                                 name='Davies-Bouldin'),
                       row=3,
                       col=1)
-        fig.update_yaxes(title_text='secondes', row=3, col=1)
     else:
         fig = make_subplots(rows=4, cols=1, shared_xaxes=True)
         fig.add_trace(go.Scatter(x=[*Results.model],
@@ -112,20 +114,18 @@ def graphScores(Results):
                       row=2,
                       col=1)
         fig.add_trace(go.Scatter(x=[*Results.model],
-                                 y=[*Results.inertia],
-                                 name='Distortion'),
+                                 y=[*Results.davies_bouldin_score],
+                                 name='Davies-Bouldin'),
                       row=3,
                       col=1)
         fig.add_trace(go.Scatter(x=[*Results.model],
-                                 y=[*Results.time],
-                                 name='Temps'),
+                                 y=[*Results.inertia],
+                                 name='Distortion'),
                       row=4,
                       col=1)
-
-        fig.update_yaxes(title_text='secondes', row=4, col=1)
     fig.update_layout(
         title_text=
-        'Visualisation des scores et du temps de classification<br>selon le paramètre du modèle'
+        'Visualisation des scores de classification<br>selon le paramètre du modèle'
     )
     return fig
 
@@ -137,7 +137,9 @@ def graphClusters(modelname, data, labels: list, clusters_centers=None):
                         y='orders_number',
                         z='mean_payement',
                         title='Clusters créés par {}'.format(modelname),
-                        color=labels.astype(str))
+                        color=labels.astype(str),
+                        labels={'color': 'Clusters'})
+    fig.update_traces(marker_size=3)
     if clusters_centers is not None:
         fig.add_trace(
             go.Scatter3d(
@@ -146,12 +148,14 @@ def graphClusters(modelname, data, labels: list, clusters_centers=None):
                 z=clusters_centers['mean_payement'],
                 mode='markers',
                 marker_symbol='x',
+                marker_size=5,
                 hovertemplate=
                 "recency: %{x}<br>frequency: %{y}<br>monetary: %{z}",
                 name="Cluster center",
             ))
-    fig.update_layout(coloraxis_colorbar=dict(yanchor='top', y=.9))
+    fig.update_layout(legend={'itemsizing': 'constant'})
     return fig
+
 
 # visualisation du nombre de clients par clusters
 def pieNbCustClust(modelname: str, labels):
