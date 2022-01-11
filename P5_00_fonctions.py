@@ -152,3 +152,18 @@ def graphClusters(modelname, data, labels: list, clusters_centers=None):
             ))
     fig.update_layout(coloraxis_colorbar=dict(yanchor='top', y=.9))
     return fig
+
+# visualisation du nombre de clients par clusters
+def pieNbCustClust(modelname: str, labels):
+    NbCustClust = pd.Series(labels).value_counts().sort_index()
+    fig = px.pie(NbCustClust,
+                 values=NbCustClust.values,
+                 names=NbCustClust.index,
+                 labels={
+                     'index': 'Cluster',
+                     'values': 'Nombre de clients'
+                 })
+    fig.update_layout(
+        title="Nombre de clients par clusters de l'algorithme {}".format(
+            modelname))
+    return fig

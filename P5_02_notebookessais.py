@@ -13,7 +13,8 @@ from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering,
     DBSCAN, OPTICS, Birch
 from sklearn.metrics import silhouette_score
 
-from P5_00_fonctions import visuPCA, searchClusters, graphScores, graphClusters
+from P5_00_fonctions import visuPCA, searchClusters, graphScores, graphClusters, \
+    pieNbCustClust
 # %%
 write_data = True
 
@@ -90,7 +91,7 @@ fig = px.scatter_3d(components,
 fig.update_layout(title='Visualisation 3D de la PCA')
 fig.show(renderer='notebook')
 
-# %% [markdown]
+# %% [markdown]
 # On retrouve des séparation en fonction du nombre d'achat surtout
 
 # %%
@@ -125,16 +126,22 @@ fig = graphClusters(
     pd.DataFrame(Data_fit.inverse_transform(best_KMeans.clusters_centers),
                  columns=DataRFM.columns))
 fig.show(renderer='notebook')
+
 # %% [markdown]
-# Les 5 clusters sont clairement interprétables
-# - 0 : clients qui ont fait 3 ou 4 achats d'une valeur moyenne < 450
-# - 1 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j)
+# Les 5 clusters sont clairement interprétables
+# - 0 : clients qui ont fait 3 ou 4 achats d'une valeur moyenne < 450
+# - 1 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j)
 # d'une valeur moyenne < 600
 # - 2 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j)
 # d'une valeur moyenne < 350
 # - 3 : clients qui ont fait plus de 5 achats d'une valeur moyenne < 400
 # - 4 : client qui ont fait 2, 3 ou 4 achats de valeurs plus importante
 # (environ > 350)
+
+# %%
+# diagramme circulaire
+fig = pieNbCustClust('KMeans', best_KMeans.labels)
+fig.show(renderer='notebook')
 # %%
 # TSNE
 fig = px.scatter(ScaledData_TSNEfit,
@@ -157,20 +164,23 @@ fig.show(renderer='notebook')
 # %% [markdown]
 # Pour cet algorithme nous allons prendre le nombre de clusters pour lequel
 # le score de Calinski-Harabasz est le plus élevé car sinon il n'y a que
-# 2 clusters ce qui est peu intéressant
+# 2 clusters ce qui est peu intéressant
 # %%
 best_Spectral = SpectralClusters.sort_values(by='calinski_harabasz_score',
                                              ascending=False).iloc[0]
 fig = graphClusters('SpectralClustering', DataRFM, best_Spectral.labels)
 fig.show(renderer='notebook')
 # %% [markdown]
-# Les 3 clusters sont clairement interprétables
-# - 0 : clients qui ont fait plus de 3 achats d'une valeur moyenne < 700
+# Les 3 clusters sont clairement interprétables
+# - 0 : clients qui ont fait plus de 3 achats d'une valeur moyenne < 700
 # - 1 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j)
 # et d'une valeur moyenne < 400
-# - 2 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j)
+# - 2 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j)
 # et/ou d'une valeur moyenne > 400
-
+# %%
+# diagramme circulaire
+fig = pieNbCustClust('SpectralClustering', best_Spectral.labels)
+fig.show(renderer='notebook')
 # %%
 # TSNE
 fig = px.scatter(ScaledData_TSNEfit,
@@ -195,17 +205,21 @@ best_Agglo = AggloClusters.sort_values(by='silhouette_score',
 fig = graphClusters('AgglomerativeClusters', DataRFM, best_Agglo.labels)
 fig.show(renderer='notebook')
 # %% [markdown]
-# Les 6 clusters sont plutôt bien définis mais se chevauches légèrement plus que
+# Les 6 clusters sont plutôt bien définis mais se chevauches légèrement plus que
 # ceux de l'algorithme KMeans
 # - 0 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j)
 # d'une valeur moyenne < 500
-# - 1 : clients qui ont fait plus de 4 achats d'une valeur moyenne < 450
+# - 1 : clients qui ont fait plus de 4 achats d'une valeur moyenne < 450
 # - 2 : clients qui ont fait entre 2 et 4 achats d'une valeur moyenne > 400
 # - 3 : clients qui ont fait 2 il y a plus longtemps (> 300j pour les montants
 # les moins importants et > 150j pour les montants plus importants)
 # - 4 : clients qui ont fait 3 achats ou 4 achats de valeurs plus importante
 # (environ > 400) ou il y a plus longtemps (> 250j)
 # - 5 : clients qui ont fait 2 achats de valeurs très importante (> 3500)
+# %%
+# diagramme circulaire
+fig = pieNbCustClust('AgglomerativeClustering', best_Agglo.labels)
+fig.show(renderer='notebook')
 # %%
 # TSNE
 fig = px.scatter(ScaledData_TSNEfit,
@@ -214,7 +228,7 @@ fig = px.scatter(ScaledData_TSNEfit,
                  color=best_Agglo.labels.astype(str))
 fig.show(renderer='notebook')
 # %% [markdown]
-# On retrouve les chevauchements plus importants sur cette visualisation aussi
+# On retrouve les chevauchements plus importants sur cette visualisation aussi
 # %%
 # DBSCAN
 DBSCANClusters = searchClusters(
@@ -235,7 +249,11 @@ fig.show(renderer='notebook')
 # - 0 : clients qui ont fait 2 achats
 # - 1 : clients qui ont fait 3 achats
 # - 2 : clients qui ont fait 4 achats
-# - 3 : clients qui ont fait 5 achats
+# - 3 : clients qui ont fait 5 achats
+# %%
+# diagramme circulaire
+fig = pieNbCustClust('DBSCAN', best_DBSCAN.labels)
+fig.show(renderer='notebook')
 # %%
 # TSNE
 fig = px.scatter(ScaledData_TSNEfit,
@@ -244,39 +262,43 @@ fig = px.scatter(ScaledData_TSNEfit,
                  color=best_DBSCAN.labels.astype(str))
 fig.show(renderer='notebook')
 # %% [markdown]
-# Les séparation concordent seulement le cluster principale n'est pas séparé
-# en deux comme avec d'autres algorithme en fonction du temps écoulé depuis
-# la dernière commande
+# Les séparation concordent seulement le cluster principale n'est pas séparé
+# en deux comme avec d'autres algorithme en fonction du temps écoulé depuis
+# la dernière commande
 # %%
 # Birch
-BirchClusters = searchClusters(Birch, ScaledData, {},
-                               'n_clusters', [*range(2, 13)])
+BirchClusters = searchClusters(Birch, ScaledData, {}, 'n_clusters',
+                               [*range(2, 13)])
 fig = graphScores(BirchClusters)
 fig.show(renderer='notebook')
 # %% [markdown]
 # Pour cet algorithme nous allons prendre le nombre de clusters pour lequel
 # le score de Calinski-Harabasz est le plus élevé car sinon il n'y a que
-# 3 clusters ce qui est peu intéressant
+# 3 clusters ce qui est peu intéressant
 # %%
 best_Birch = BirchClusters.sort_values(by='calinski_harabasz_score',
                                        ascending=False).iloc[0]
 fig = graphClusters('Birch', DataRFM, best_Birch.labels)
 fig.show(renderer='notebook')
 # %% [markdown]
-# Nous avons alors 9 clusters:
-# - 0 : clients ayant fait entre 6 et 9 commandes
+# Nous avons alors 9 clusters:
+# - 0 : clients ayant fait entre 6 et 9 commandes
 # - 1 : clients ayant fait des commandes d'une valeur moyenne plutôt élevé (>800)
 # - 2 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt moyenne
 # (entre 400 et 800)
-# - 3 : clients ayant fait 3 ou 4 commandes d'une valeur moyenne plutôt basse 
+# - 3 : clients ayant fait 3 ou 4 commandes d'une valeur moyenne plutôt basse
 # (<400) et il y a plus longtemps (>300j)
 # - 4 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt basse
 # (<500) et plus récemment (<300j)
-# - 5 : clients ayant fait 2 commandes d'une valeur moyenne très élevée (>3500)
+# - 5 : clients ayant fait 2 commandes d'une valeur moyenne très élevée (>3500)
 # - 6 : clients ayant fait 4 ou 5 commandes plutôt récemment (<250j)
-# - 7 : clients ayant fait un très grand nombre de commandes (15)
+# - 7 : clients ayant fait un très grand nombre de commandes (15)
 # - 8 : clients ayant fait 2 commandes d'une valeur moyenne plutôt basse (<450)
 # et il y a plus longtemps (>350j)
+# %%
+# diagramme circulaire
+fig = pieNbCustClust('Birch', best_Birch.labels)
+fig.show(renderer='notebook')
 # %%
 # TSNE
 fig = px.scatter(ScaledData_TSNEfit,
@@ -285,6 +307,6 @@ fig = px.scatter(ScaledData_TSNEfit,
                  color=best_Birch.labels.astype(str))
 fig.show(renderer='notebook')
 # %% [markdown]
-# Il y a plus de clusters que ce que nous permet de visualiser la t-SNE on a donc 
-# des ensembles scindés en plusieurs clusters
+# Il y a plus de clusters que ce que nous permet de visualiser la t-SNE on a donc
+# des ensembles scindés en plusieurs clusters
 # %%
