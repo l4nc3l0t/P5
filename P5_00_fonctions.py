@@ -51,9 +51,10 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
         fit_pred_time = time() - start_time
         result = {
             'model':
-            str(paramodel).replace(', n_jobs=-1',
-                                   '').replace('n_jobs=-1', '').replace(
-                                       "affinity='nearest_neighbors', ", ''),
+            str(paramodel).replace(' ', '').replace(',', '').replace(
+                'n_jobs=-1',
+                '').replace('random_state=50',
+                            '').replace("affinity='nearest_neighbors'", ''),
             'n_clusters':
             pred_labels.max() + 1,
             'labels':
