@@ -220,12 +220,19 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
 # %%
 figM = simulationMAJData(Customers, Payments, Orders, '2017-09', 'mensuelle')
 figM.show(renderer='notebook')
+if write_data is True:
+    figM.write_image('./Figures/simMAJM.pdf')
+    figM.write_image('./Figures/simMAJM.pdf')
 # %%
 figT = simulationMAJData(Customers, Payments, Orders, '2017-09',
                          'trimestrielle')
 figT.show(renderer='notebook')
+if write_data is True:
+    figM.write_image('./Figures/simMAJT.pdf')
 # %%
 figS = simulationMAJData(Customers, Payments, Orders, '2017-09',
                          'semestrielle')
 figS.show(renderer='notebook')
+if write_data is True:
+    figM.write_image('./Figures/simMAJS.pdf')
 # %%
