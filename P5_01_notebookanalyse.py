@@ -107,7 +107,7 @@ Reviews.info()
 # %%
 Orders.info()
 # %% [markdown]
-#- order_id : identifiant de la commande, clé commune avec les payements, les notes
+#- order_id : identifiant de la commande, clé commune avec les paiements, les notes
 #et les objects achetés (items)
 #- customer_id : indentifiant du client, clé commune avec les clients
 #- order_status : status de la commande
@@ -253,6 +253,7 @@ print('Temps moyen entre deux commandes {} jours'.format(
 # Il peut être intéressant de renouveller le modèle tout les 3 mois étant donné que
 # c'est la durée moyenne entre 2 commandes
 # %%
+# calcul du temps depuis le dernier achat
 LastPurchase = CustomersMultID.merge(
     Customers[['customer_unique_id', 'customer_id']],
     on='customer_unique_id',
@@ -275,18 +276,18 @@ DelivPayments = DelivOrders[['order_id', 'customer_id']].merge(
 # groupement par commande et calcule du total payé et de la part payée en bon d'achat
 DelivPaymentsVouch = DelivPayments.groupby('order_id').sum(
     'payment_value').reset_index().rename(columns={
-        'payment_value': 'payement_total'
+        'payment_value': 'payment_total'
     }).merge(DelivPayments[DelivPayments.payment_type == 'voucher'].groupby(
-        'order_id').sum('payement_value').reset_index().rename(
+        'order_id').sum('payment_value').reset_index().rename(
             columns={'payment_value': 'voucher_payment'}),
              on='order_id',
              how='right')
 # calcul du pourcentage de la part des paiements en bon d'achat
 DelivPaymentsVouch[
     'voucher_percent_part'] = DelivPaymentsVouch.voucher_payment.div(
-        DelivPaymentsVouch.payement_total).mul(100)
-# rassemblements des données de payements et des calculs effectués
-PaymentsGroup = DelivPayments.groupby('order_id').sum('payement_value').merge(
+        DelivPaymentsVouch.payment_total).mul(100)
+# rassemblements des données de paiements et des calculs effectués
+PaymentsGroup = DelivPayments.groupby('order_id').sum('payment_value').merge(
     DelivPaymentsVouch[['order_id', 'voucher_percent_part']],
     on='order_id',
     how='outer').fillna(0)
@@ -304,8 +305,8 @@ PaymentsCust = CustomersMultID.merge(
                               'voucher_percent_part':
                               'mean'
                           }).reset_index()
-PaymentsCust['total_payement'] = PaymentsCust.payment_value['sum']
-PaymentsCust['mean_payement'] = PaymentsCust.payment_value['mean']
+PaymentsCust['total_payment'] = PaymentsCust.payment_value['sum']
+PaymentsCust['mean_payment'] = PaymentsCust.payment_value['mean']
 PaymentsCust.columns = PaymentsCust.columns.droplevel(1)
 PaymentsCust.drop(columns='payment_value', inplace=True)
 # %% [markdown]
@@ -539,11 +540,11 @@ for a1, a2 in [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13],
 # %% [markdown]
 # Il est difficile d'observer des variables qui auraient plus d'importances
 # que d'autres ou d'en regrouper. Nous allons utiliser les méthodes de
-# marketing traditionnelles : Recency (last_purchase_days),
-# Frequency (orders_number), Monetary (mean_payement)
+# marketing traditionnelles : Recency (last_purchase_days),
+# Frequency (orders_number), Monetary (mean_payment)
 # %%
 DataRFM = Data[['last_purchase_days', 'orders_number',
-                'mean_payement']].dropna()
+                'mean_payment']].dropna()
 if write_data is True:
     DataRFM.to_csv('OlistDataRFM.csv', index=False)
 
