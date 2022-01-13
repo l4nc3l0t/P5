@@ -140,7 +140,7 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
                               dtstart=datetime.datetime.strptime(
                                   '2017-09', '%Y-%m'),
                               until=DelivOrders.order_purchase_timestamp.max().
-                              to_pydatetime())))))
+                              to_pydatetime()))) + 1))
         for m, rm in zip(months, reversed(months)):
             # pour chaque nombre de mois ajout des commandes effectuées pendant
             # ces mois
@@ -159,7 +159,7 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
                               dtstart=datetime.datetime.strptime(
                                   '2017-09', '%Y-%m'),
                               until=DelivOrders.order_purchase_timestamp.max().
-                              to_pydatetime()))) / 3))
+                              to_pydatetime()))) / 3 + 1))
         for t, rt in zip(trimestre, reversed(trimestre)):
             Data['T{}'.format(rt)] = selectDataRFM(
                 Customers, Payments, Orders,
@@ -176,7 +176,7 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
                               dtstart=datetime.datetime.strptime(
                                   '2017-09', '%Y-%m'),
                               until=DelivOrders.order_purchase_timestamp.max().
-                              to_pydatetime()))) / 6))
+                              to_pydatetime()))) / 6 + 1))
         for s, rs in zip(semestre, reversed(semestre)):
             Data['S{}'.format(rs)] = selectDataRFM(
                 Customers, Payments, Orders,
