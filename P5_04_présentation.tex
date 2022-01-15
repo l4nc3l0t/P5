@@ -125,5 +125,59 @@
     \end{columns}
 \end{frame}
 
+\section{Analyse et transformation des données}
+\subsection{structure de la base de données}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.4\textwidth}
+            \begin{itemize}
+                \item Fichier central contenant les commandes (olist\_orders\_dataset)
+                \item Des identifiants permettent de rassembler les différents fichiers constituant la base de données
+                      \begin{itemize}
+                          \item order\_id relie les données de paiement, les produits commandés et les données de notation aux commandes,
+                          \item[]
+                          \item customer\_id relie les identifiants des clients aux commandes,
+                          \item[]
+                          \item products\_id relie les données concernant les produits aux produits commandés,
+                          \item[]
+                          \item seller\_id relie les données de vendeurs aux produits commandés,
+                          \item[]
+                          \item zip\_code\_prefix relie les données de géolocalisation des acheteurs et des vendeurs
+                      \end{itemize}
+                \item Ces données vont nous permettre de calculer des variables plus intéressantes dans le cadre de cette segmentation des clients
+            \end{itemize}
+        \end{column}
+        \begin{column}{.6\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{ArchDataOlist.png}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsubsection{calcul de nouvelles variables}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{itemize}
+        \item Études des clients = nécessité de regrouper les données de commandes par client
+        \item[]
+        \item Permet de compter :
+              \begin{itemize}
+                  \item la date de la dernière commande
+                  \item le prix moyen d'une commande d'un client
+                  \item le nombre de commandes par client
+                  \item le temps moyen entre deux commandes effectuées par un même client
+                  \item la note moyenne données par un client
+                  \item le nombre de produits par catégories de produits achetés par un clients
+                  \item[] $\vdots$
+              \end{itemize}
+        \item[]
+        \item Utilisation des méthodes traditionnelles de marketing pour classifier les clients : classification RFM
+              \begin{itemize}
+                  \item Recency : la date à laquelle à été effectuée la dernière commande
+                  \item Frequency : le nombre de commande
+                  \item Monetary : le prix moyen d'une commandes d'un client
+              \end{itemize}
+    \end{itemize}
+\end{frame}
 
 \end{document}
