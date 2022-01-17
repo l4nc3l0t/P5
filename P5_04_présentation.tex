@@ -274,13 +274,13 @@
             \end{figure}
             \begin{itemize}
                 \item Les 5 clusters sont clairement interprétables
-                \begin{itemize}
-                    \item 0 : clients qui ont fait 3 ou 4 achats d'une valeur moyenne < 450
-                    \item 1 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j) d'une valeur moyenne < 600
-                    \item 2 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 350
-                    \item 3 : clients qui ont fait plus de 5 achats d'une valeur moyenne < 400
-                    \item 4 : client qui ont fait 2, 3 ou 4 achats de valeurs plus importante (environ > 350)
-                \end{itemize}
+                      \begin{itemize}
+                          \item 0 : clients qui ont fait 3 ou 4 achats d'une valeur moyenne < 450
+                          \item 1 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j) d'une valeur moyenne < 600
+                          \item 2 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 350
+                          \item 3 : clients qui ont fait plus de 5 achats d'une valeur moyenne < 400
+                          \item 4 : client qui ont fait 2, 3 ou 4 achats de valeurs plus importante (environ > 350)
+                      \end{itemize}
             \end{itemize}
         \end{column}
         \begin{column}{.45\textwidth}
@@ -301,11 +301,11 @@
             \end{figure}
             \begin{itemize}
                 \item Les 3 clusters sont clairement interprétables
-                \begin{itemize}
-                    \item 0 : clients qui ont fait plus de 3 achats d'une valeur moyenne < 700
-                    \item 1 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) et d'une valeur moyenne < 400
-                    \item 2 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j) et/ou d'une valeur moyenne > 400
-                \end{itemize}
+                      \begin{itemize}
+                          \item 0 : clients qui ont fait plus de 3 achats d'une valeur moyenne < 700
+                          \item 1 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) et d'une valeur moyenne < 400
+                          \item 2 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j) et/ou d'une valeur moyenne > 400
+                      \end{itemize}
             \end{itemize}
         \end{column}
         \begin{column}{.45\textwidth}
@@ -327,15 +327,15 @@
             \begin{itemize}
                 \footnotesize
                 \item Les 6 clusters sont plutôt bien définis mais se chevauches légèrement plus que ceux de l'algorithme KMeans
-                \begin{itemize}
-                    \scriptsize
-                    \item 0 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 500
-                    \item 1 : clients qui ont fait plus de 4 achats d'une valeur moyenne < 450
-                    \item 2 : clients qui ont fait entre 2 et 4 achats d'une valeur moyenne > 400
-                    \item 3 : clients qui ont fait 2 il y a plus longtemps (> 300j pour les montants les moins importants et > 150j pour les montants plus importants)
-                    \item 4 : clients qui ont fait 3 achats ou 4 achats de valeurs plus importante (environ > 400) ou il y a plus longtemps (> 250j)
-                    \item clients qui ont fait 2 achats de valeurs très importante (> 3500)
-                \end{itemize}
+                      \begin{itemize}
+                          \scriptsize
+                          \item 0 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 500
+                          \item 1 : clients qui ont fait plus de 4 achats d'une valeur moyenne < 450
+                          \item 2 : clients qui ont fait entre 2 et 4 achats d'une valeur moyenne > 400
+                          \item 3 : clients qui ont fait 2 il y a plus longtemps (> 300j pour les montants les moins importants et > 150j pour les montants plus importants)
+                          \item 4 : clients qui ont fait 3 achats ou 4 achats de valeurs plus importante (environ > 400) ou il y a plus longtemps (> 250j)
+                          \item clients qui ont fait 2 achats de valeurs très importante (> 3500)
+                      \end{itemize}
             \end{itemize}
         \end{column}
         \begin{column}{.45\textwidth}
@@ -356,12 +356,12 @@
             \end{figure}
             \begin{itemize}
                 \item Cet algorithme cherche lui même le nombre de cluster. Il en a créé 4 et éliminé quelques points. Les quatres clusters correspondent au nombre d'achats effectués
-                \begin{itemize}
-                    \item 0 : clients qui ont fait 2 achats
-                    \item 1 : clients qui ont fait 3 achats
-                    \item 2 : clients qui ont fait 4 achats
-                    \item 3 : clients qui ont fait 5 achats
-                \end{itemize}
+                      \begin{itemize}
+                          \item 0 : clients qui ont fait 2 achats
+                          \item 1 : clients qui ont fait 3 achats
+                          \item 2 : clients qui ont fait 4 achats
+                          \item 3 : clients qui ont fait 5 achats
+                      \end{itemize}
             \end{itemize}
         \end{column}
         \begin{column}{.45\textwidth}
@@ -386,18 +386,18 @@
             \begin{itemize}
                 \footnotesize
                 \item Les 9 clusters sont plutôt bien définis mais cela commence à faire un grand nombre de clusters pour différencier des clients
-                \begin{itemize}
-                    \scriptsize
-                    \item 0 : clients ayant fait entre 6 et 9 commandes
-                    \item 1 : clients ayant fait des commandes d'une valeur moyenne plutôt élevé (>800)
-                    \item 2 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt moyenne (entre 400 et 800)
-                    \item 3 : clients ayant fait 3 ou 4 commandes d'une valeur moyenne plutôt basse (<400) et il y a plus longtemps (>300j)
-                    \item 4 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt basse (<500) et plus récemment (<300j)
-                    \item 5 : clients ayant fait 2 commandes d'une valeur moyenne très élevée (>3500)
-                    \item 6 : clients ayant fait 4 ou 5 commandes plutôt récemment (<250j)
-                    \item 7 : clients ayant fait un très grand nombre de commandes (15)
-                    \item 8 : clients ayant fait 2 commandes d'une valeur moyenne plutôt basse (<450) et il y a plus longtemps (>350j)
-                \end{itemize}
+                      \begin{itemize}
+                          \scriptsize
+                          \item 0 : clients ayant fait entre 6 et 9 commandes
+                          \item 1 : clients ayant fait des commandes d'une valeur moyenne plutôt élevé (>800)
+                          \item 2 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt moyenne (entre 400 et 800)
+                          \item 3 : clients ayant fait 3 ou 4 commandes d'une valeur moyenne plutôt basse (<400) et il y a plus longtemps (>300j)
+                          \item 4 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt basse (<500) et plus récemment (<300j)
+                          \item 5 : clients ayant fait 2 commandes d'une valeur moyenne très élevée (>3500)
+                          \item 6 : clients ayant fait 4 ou 5 commandes plutôt récemment (<250j)
+                          \item 7 : clients ayant fait un très grand nombre de commandes (15)
+                          \item 8 : clients ayant fait 2 commandes d'une valeur moyenne plutôt basse (<450) et il y a plus longtemps (>350j)
+                      \end{itemize}
             \end{itemize}
         \end{column}
         \begin{column}{.45\textwidth}
@@ -415,14 +415,14 @@
             \begin{itemize}
                 \item Plus le coefficient de silhouette est haut mieux les clusters sont définis
                 \item Il est calculé pour chaque élément et est composé de deux scores :
-                \begin{itemize}
-                    \item La distance entre cet élément et les autres éléments contenu dans la même classe
-                    \item La distance moyenne entre cet élément et ceux contenus dans la classe la plus proche
-                \end{itemize}
+                      \begin{itemize}
+                          \item La distance entre cet élément et les autres éléments contenu dans la même classe
+                          \item La distance moyenne entre cet élément et ceux contenus dans la classe la plus proche
+                      \end{itemize}
                 \item[]
                 \item Plus le score de Calinski-Harabasz est haut mieux lest clusters sont denses et bien séparés
                 \item Calcul le ratio de la somme des dispersions inter-clusters et de celle des dispersions intra-clusters
-                \item[] 
+                \item[]
                 \item Plus le score de Davies-Bouldin est bas mieux les clusters sont définis
                 \item Calcul la similarité entre les clusters. Cette similarité compare la distance entre les clusters avec la taille des clusters
             \end{itemize}
@@ -433,8 +433,65 @@
             \end{figure}
         \end{column}
     \end{columns}
+    \vspace{.5cm}
     Au vu de ces données je choisi d'utiliser l'algorithme KMeans qui a à la fois un coefficient de silhouette et un score de Calinski-Harabasz élevés
 \end{frame}
 
+\section{Simulation de l'évolution de la classification}
+\subsection{aspect technique}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{itemize}
+        \item Utilisation de l'algorithme KMeans à 5 clusters
+        \item[]
+        \item Utilisation du score ARI : Adjusted Rand Index
+        \begin{itemize}
+            \item Compare la similarité entre les labels assignés à un même élément pour différentes méthodes de classification
+        \end{itemize}
+        \item[]
+        \item Sélection et ajout (incrémentation) des clients qui nous intéressent (plus de 2 commandes effectuées et reçues) par période donnée (mensuelle, trimestrielle, semestrielle)
+        \item[]
+        \item Comparaison pour chaque incrémentation avec les données les plus récentes pour les clients correspondants
+        \begin{itemize}
+            \item L'observation de l'évolution de l'ARI va nous permettre de voir combien de temps les labels assignés restent pertinents
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\subsection{visualisation de l'évolution}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}[t]
+        \begin{column}{.5\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{simMAJS.pdf}
+            \end{figure}
+            \begin{itemize}
+                \footnotesize
+                \item Le premier semestre semble être encore assez bien corrélé (ARI>0.9) le second chute assez brutalement (ARI<0.6)
+                \item Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente ensuite jusqu'au 3è trimestre. On retrouve la chute importante au 4è trimestre
+                \item Les trois premiers mois les données restent bien corrélées (ARI>0.98) mais après on observe une pente plus importante entre le 3è et le 11è mois avec une chute au 12è mois
+            \end{itemize}
+        \end{column}
+        \begin{column}{.5\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{simMAJT.pdf}
+                \includegraphics[width=\textwidth]{simMAJM.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}
+    \begin{itemize}
+        \item L'algorithme KMeans me parait le plus pertinent car il est le plus performant pour un  nombre de cluster raisonable
+        \item Il propose un classification ni trop complexe ni trop simple qui ne permettrait pas de bien comprendre le profil du client
+        \item[]
+        \item Idéalement renouvellement trimestriel afin de garder des données au plus près de la réalité réalité (ARI>0.98)
+        \item[]
+        \item Le renouvellement tout les 6 mois me semble rester pertinent car l'ARI reste autour de 0.9
+        \item[]
+        \item Par contre au delà la chute du score s'accélère et au bout d'un an l'ARI passe en dessous de 0.6
+    \end{itemize}
+\end{frame}
 
 \end{document}
