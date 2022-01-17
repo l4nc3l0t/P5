@@ -244,8 +244,12 @@ figS = simulationMAJData(Customers, Payments, Orders, '2017-09',
                          'semestrielle')
 figS.show(renderer='notebook')
 if write_data is True:
-    figS.write_image('./Figures/simMAJS.pdf')
-    figS.write_image('./Figures/simMAJS.pdf')
+    figS.write_image('./Figures/simMAJS.pdf', height=300)
+# %%
+figS = simulationMAJData(Customers, Payments, Orders, '2017-09',
+                         'semestrielle')
+if write_data is True:
+    figS.write_image('./Figures/simMAJS.pdf', height=300)
 # %% [markdown]
 # Le premier semestre semble être encore assez bien corrélé (ARI>0.9) le second
 # chute assez brutalement (ARI<0.6)
@@ -255,7 +259,7 @@ figT = simulationMAJData(Customers, Payments, Orders, '2017-09',
                          'trimestrielle')
 figT.show(renderer='notebook')
 if write_data is True:
-    figT.write_image('./Figures/simMAJT.pdf')
+    figT.write_image('./Figures/simMAJT.pdf', height=300)
 # %% [markdown]
 # Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente 
 # ensuite jusqu'au 3è trimestre. On retrouve la chute importante au 4è trimestre
@@ -264,7 +268,7 @@ if write_data is True:
 figM = simulationMAJData(Customers, Payments, Orders, '2017-09', 'mensuelle')
 figM.show(renderer='notebook')
 if write_data is True:
-    figM.write_image('./Figures/simMAJM.pdf')
+    figM.write_image('./Figures/simMAJM.pdf', height=300)
 #%% [markdown]
 # Les trois premiers mois les données restent bien corrélées (ARI>0.98) mais après
 # on observe une pente plus importante entre le 3è et le 11è mois avec une chute
@@ -275,6 +279,6 @@ if write_data is True:
 # Afin de conserver des données toujours au plus près de la réalité (ARI>0.98) 
 # il me semble idéal de renouveler le modèle tout les 3 mois (mise à jours
 # trimestrielle). Si le modèle n'est renouvelé que tout les 6 mois on sera moins
-# proche de la réalité mais celà me semble rester pertinent car l'ARI reste autour 
+# proche de la réalité mais cela me semble rester pertinent car l'ARI reste autour 
 # de 0.9. Par contre au delà la chute du score s'accélère et au bout d'un an l'ARI
 # passe en dessous de 0.6.
