@@ -181,6 +181,14 @@ fig.update_layout(showlegend=False)
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbCommandesJ.pdf', height=350)
+# %%
+fig = px.line(DelivOrders.groupby(
+    DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
+              title='Nombre de commandes par jours',
+              labels=dict(value='Nombre de commandes',
+                          order_purchase_timestamp='Date'))
+fig.update_layout(showlegend=False)
+if write_data is True:
     fig.write_image('./Figures/NbCommandesJ.pdf', height=350)
 
 # %%
