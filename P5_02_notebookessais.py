@@ -116,6 +116,8 @@ KMeansClusters = searchClusters(KMeans, ScaledData, {'random_state': 50},
                                 'n_clusters', [*range(2, 13)])
 fig = graphScores(KMeansClusters)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/ScoresKMeans.pdf', width=500)
 # %% [markdown]
 # Le meilleurs résultat est pour 5 clusters
 # %%
@@ -125,11 +127,10 @@ fig = graphClusters(
     'KMeans', DataRFM, best_KMeans.labels,
     pd.DataFrame(Data_fit.inverse_transform(best_KMeans.clusters_centers),
                  columns=DataRFM.columns))
-fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=2)))
+fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=1.9)))
 fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/VisuKMeansClusters.pdf', width=820, height=800)
-
+    fig.write_image('./Figures/VisuKMeansClusters.pdf', width=760, height=700)
 # %% [markdown]
 # Les 5 clusters sont clairement interprétables
 # - 0 : clients qui ont fait 3 ou 4 achats d'une valeur moyenne < 450
@@ -145,6 +146,8 @@ if write_data is True:
 # diagramme circulaire
 fig = pieNbCustClust('KMeans', best_KMeans.labels)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/pieKMeans.pdf', width=500)
 # %% [markdown]
 # On retrouve sur cette visualisation par t-SNE certains des clusters définis
 # par KMeans mais certains sont rassemblés (2 et 4 par exemple)
@@ -157,6 +160,8 @@ SpectralClusters = searchClusters(SpectralClustering, ScaledData, {
 }, 'n_clusters', [*range(2, 13)])
 fig = graphScores(SpectralClusters)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/ScoresSpectral.pdf', width=500)
 # %% [markdown]
 # Pour cet algorithme nous allons prendre le nombre de clusters pour lequel
 # le score de Calinski-Harabasz est le plus élevé car sinon il n'y a que
@@ -165,10 +170,10 @@ fig.show(renderer='notebook')
 best_Spectral = SpectralClusters.sort_values(by='calinski_harabasz_score',
                                              ascending=False).iloc[0]
 fig = graphClusters('SpectralClustering', DataRFM, best_Spectral.labels)
-fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=2)))
+fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=1.9)))
 fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/VisuSpectralClusters.pdf', width=820, height=800)
+    fig.write_image('./Figures/VisuSpectralClusters.pdf', width=760, height=700)
 # %% [markdown]
 # Les 3 clusters sont clairement interprétables
 # - 0 : clients qui ont fait plus de 3 achats d'une valeur moyenne < 700
@@ -180,6 +185,8 @@ if write_data is True:
 # diagramme circulaire
 fig = pieNbCustClust('SpectralClustering', best_Spectral.labels)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/pieSpectral.pdf', width=500)
 # %% [markdown]
 # Les séparation correspondent presque on a un peu de mélange entre les clusters
 # 1 et 2
@@ -189,16 +196,18 @@ AggloClusters = searchClusters(AgglomerativeClustering, ScaledData, {},
                                'n_clusters', range(2, 13))
 fig = graphScores(AggloClusters)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/ScoresAgglo.pdf', width=500, height=530)
 # %% [markdown]
 # Le meilleurs résultat est pour 6 clusters
 # %%
 best_Agglo = AggloClusters.sort_values(by='silhouette_score',
                                        ascending=False).iloc[0]
 fig = graphClusters('AgglomerativeClusters', DataRFM, best_Agglo.labels)
-fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=2)))
+fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=1.9)))
 fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/VisuAggloClusters.pdf', width=820, height=800)
+    fig.write_image('./Figures/VisuAggloClusters.pdf', width=760, height=700)
 # %% [markdown]
 # Les 6 clusters sont plutôt bien définis mais se chevauches légèrement plus que
 # ceux de l'algorithme KMeans
@@ -215,6 +224,8 @@ if write_data is True:
 # diagramme circulaire
 fig = pieNbCustClust('AgglomerativeClustering', best_Agglo.labels)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/pieAgglo.pdf', width=500)
 # %% [markdown]
 # On retrouve les chevauchements plus importants sur cette visualisation aussi
 # %%
@@ -224,15 +235,17 @@ DBSCANClusters = searchClusters(
     [round(e, 2) for e in np.linspace(.2, 1.9, 10)])
 fig = graphScores(DBSCANClusters)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/ScoresDBSCAN.pdf', width=500)
 
 # %%
 best_DBSCAN = DBSCANClusters.sort_values(by='silhouette_score',
                                          ascending=False).iloc[0]
 fig = graphClusters('DBSCAN', DataRFM, best_DBSCAN.labels)
-fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=2)))
+fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=1.9)))
 fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/VisuDBSCANClusters.pdf', width=820, height=800)
+    fig.write_image('./Figures/VisuDBSCANClusters.pdf', width=760, height=700)
 # %% [markdown]
 # Cet algorithme cherche lui même le nombre de cluster.
 # Il en a créé 4 et éliminé quelques points. Les quatres clusters correspondent
@@ -245,6 +258,8 @@ if write_data is True:
 # diagramme circulaire
 fig = pieNbCustClust('DBSCAN', best_DBSCAN.labels)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/pieDBSCAN.pdf', width=500)
 # %% [markdown]
 # Les séparation concordent seulement le cluster principale n'est pas séparé
 # en deux comme avec d'autres algorithme en fonction du temps écoulé depuis
@@ -255,6 +270,8 @@ BirchClusters = searchClusters(Birch, ScaledData, {}, 'n_clusters',
                                [*range(2, 13)])
 fig = graphScores(BirchClusters)
 fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/ScoresBirch.pdf', width=500)
 # %% [markdown]
 # Pour cet algorithme nous allons prendre le nombre de clusters pour lequel
 # le score de Calinski-Harabasz est le plus élevé car sinon il n'y a que
@@ -263,10 +280,10 @@ fig.show(renderer='notebook')
 best_Birch = BirchClusters.sort_values(by='calinski_harabasz_score',
                                        ascending=False).iloc[0]
 fig = graphClusters('Birch', DataRFM, best_Birch.labels)
-fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=2)))
+fig.update_layout(scene_camera=dict(eye=dict(x=-1, y=1, z=1.9)))
 fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/VisuBirchClusters.pdf', width=820, height=800)
+    fig.write_image('./Figures/VisuBirchClusters.pdf', width=760, height=700)
 # %% [markdown]
 # Nous avons alors 9 clusters:
 # - 0 : clients ayant fait entre 6 et 9 commandes
@@ -286,22 +303,39 @@ if write_data is True:
 # diagramme circulaire
 fig = pieNbCustClust('Birch', best_Birch.labels)
 fig.show(renderer='notebook')
-# %% [markdown]
-# Il y a plus de clusters que ce que nous permet de visualiser la t-SNE on a donc
-# des ensembles scindés en plusieurs clusters
+if write_data is True:
+    fig.write_image('./Figures/pieBirch.pdf', width=500)
+
 # %%
 CompareScores = pd.DataFrame(
-    columns=['model', 'silhouette_score', 'calinski_harabasz'])
+    columns=['model', 'silhouette', 'calinski_harabasz', 'davies_bouldin'])
 for best in [best_KMeans, best_Spectral, best_Agglo, best_DBSCAN, best_Birch]:
     CompareScores = CompareScores.merge(
         pd.DataFrame([{
             'model': best.model,
-            'silhouette_score': best.silhouette_score,
-            'calinski_harabasz': best.calinski_harabasz_score
+            'silhouette': best.silhouette_score,
+            'calinski_harabasz': best.calinski_harabasz_score,
+            'davies_bouldin': best.davies_bouldin_score
         }]),
-        on=['model', 'silhouette_score', 'calinski_harabasz'],
+        on=['model', 'silhouette', 'calinski_harabasz', 'davies_bouldin'],
         how='outer')
-
+CompareScores.set_index('model', inplace=True)
+# %%
+fig = make_subplots(len(CompareScores.columns),
+                    1,
+                    row_titles=(CompareScores.columns.to_list()),
+                    shared_xaxes=True)
+for r, c in enumerate(CompareScores):
+    fig.add_trace(go.Bar(x=CompareScores.index, y=CompareScores[c]),
+                  row=r + 1,
+                  col=1)
+fig.update_layout(
+    title_text="Comparaison des scores des modèles de classification",
+    showlegend=False,
+    height=700)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/CompareScores.pdf', height=700)
 # %%
 # TSNE KMeans
 fig = px.scatter(ScaledData_TSNEfit,

@@ -180,7 +180,8 @@ fig = px.line(DelivOrders.groupby(
 fig.update_layout(showlegend=False)
 fig.show(renderer='notebook')
 if write_data is True:
-    fig.write_image('./Figures/NbCommandesJ.pdf')
+    fig.write_image('./Figures/NbCommandesJ.pdf', height=350)
+    fig.write_image('./Figures/NbCommandesJ.pdf', height=350)
 
 # %%
 # visualisation du nombre de commandes par mois
@@ -339,8 +340,6 @@ fig = px.bar(x=Products.product_category_name.value_counts().index,
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbProdCat.pdf')
-if write_data is True:
-    fig.write_image('./Figures/NbProdCat.pdf')
 # %%
 subcat_str = [
     'fashio|luggage|leisure', 'health|beauty|perfum', 'toy|baby|diaper',
@@ -370,7 +369,7 @@ fig = px.bar(x=Products10Cat.product_category_name.value_counts().index,
              y=Products10Cat.product_category_name.value_counts().values,
              labels=dict(x='Catégories de produits', y='Nombre de produits'),
              title='Nombre de produits par catégories',
-             height=500,
+             height=400,
              width=600)
 fig.show(renderer='notebook')
 if write_data is True:
@@ -558,3 +557,5 @@ for col in DataRFM.columns:
     fig.show(renderer='notebook')
     if write_data is True:
         fig.write_image('./Figures/HistRFM{}.pdf'.format(col))
+
+# %%

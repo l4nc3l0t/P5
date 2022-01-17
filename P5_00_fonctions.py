@@ -135,7 +135,7 @@ def graphClusters(modelname, data, labels: list, clusters_centers=None):
     fig = px.scatter_3d(data,
                         x='last_purchase_days',
                         y='orders_number',
-                        z='mean_payement',
+                        z='mean_payment',
                         title='Clusters créés par {}'.format(modelname),
                         color=labels.astype(str),
                         labels={'color': 'Clusters'})
@@ -145,7 +145,7 @@ def graphClusters(modelname, data, labels: list, clusters_centers=None):
             go.Scatter3d(
                 x=clusters_centers['last_purchase_days'],
                 y=clusters_centers['orders_number'],
-                z=clusters_centers['mean_payement'],
+                z=clusters_centers['mean_payment'],
                 mode='markers',
                 marker_symbol='x',
                 marker_size=5,
@@ -168,6 +168,6 @@ def pieNbCustClust(modelname: str, labels):
                      'values': 'Nombre de clients'
                  })
     fig.update_layout(
-        title="Nombre de clients par clusters de l'algorithme {}".format(
+        title="Nombre de clients par clusters de l'algorithme<br>{}".format(
             modelname))
     return fig
