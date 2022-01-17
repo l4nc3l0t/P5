@@ -155,7 +155,7 @@
     \end{columns}
 \end{frame}
 
-\subsubsection{calcul de nouvelles variables}
+\subsection{calcul de nouvelles variables}
 \begin{frame}{\insertsection: \insertsubsection}
     \begin{itemize}
         \item Études des clients = nécessité de regrouper les données de commandes par client
@@ -179,5 +179,262 @@
               \end{itemize}
     \end{itemize}
 \end{frame}
+
+\subsection{analyse des données}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.5\textwidth}
+            \begin{itemize}
+                \item Augmentation du nombre de commandes durant l'années 2017
+                \item Développement après le lancement
+            \end{itemize}
+        \end{column}
+        \begin{column}{.5\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{NbCommandesM.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+    \begin{columns}
+        \begin{column}{.5\textwidth}
+            \begin{itemize}
+                \item Pic d'achat au 24 novembre 2017 qui correspond au Black Friday
+            \end{itemize}
+        \end{column}
+        \begin{column}{.5\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{NbCommandesJ.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}[t]
+        \begin{column}{.6\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{NbProdCat.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Très grand nombre de catégories de produits
+            \end{itemize}
+        \end{column}
+        \begin{column}{.4\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{NbProdCat10.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Regroupement en 10 catégories
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsubsection{Visualisation des données de RFM}
+\begin{frame}{\insertsection: \insertsubsection}{\insertsubsubsection}
+    \begin{columns}[t]
+        \begin{column}{.33\textwidth}
+            Recency
+            \begin{figure}
+                \includegraphics[width=\textwidth]{HistRFMlast_purchase_days.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Beaucoup d'achats entre 0 et 200, mediane autour de 200
+            \end{itemize}
+        \end{column}
+        \begin{column}{.33\textwidth}
+            Frequency
+            \begin{figure}
+                \includegraphics[width=\textwidth]{HistRFMorders_number.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Majorité des clients ont effectués 2 achats mais quelques exeptions (9, 15)
+            \end{itemize}
+        \end{column}
+        \begin{column}{.33\textwidth}
+            Monetary
+            \begin{figure}
+                \includegraphics[width=\textwidth]{HistRFMmean_payment.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Dépense médiane autour de 100  certains clients sont très dépensiers jusqu'à 3700
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\section{Essais de différents modèles}
+\subsection{KMeans}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.55\textwidth}
+            \begin{figure}
+                \includegraphics[width=.49\textwidth]{ScoresKMeans.pdf}
+                \includegraphics[width=.49\textwidth]{pieKMeans.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Les 5 clusters sont clairement interprétables
+                \begin{itemize}
+                    \item 0 : clients qui ont fait 3 ou 4 achats d'une valeur moyenne < 450
+                    \item 1 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j) d'une valeur moyenne < 600
+                    \item 2 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 350
+                    \item 3 : clients qui ont fait plus de 5 achats d'une valeur moyenne < 400
+                    \item 4 : client qui ont fait 2, 3 ou 4 achats de valeurs plus importante (environ > 350)
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+        \begin{column}{.45\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{VisuKMeansClusters.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsection{SpectralClustering}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.55\textwidth}
+            \begin{figure}
+                \includegraphics[width=.49\textwidth]{ScoresSpectral.pdf}
+                \includegraphics[width=.49\textwidth]{pieSpectral.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Les 3 clusters sont clairement interprétables
+                \begin{itemize}
+                    \item 0 : clients qui ont fait plus de 3 achats d'une valeur moyenne < 700
+                    \item 1 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) et d'une valeur moyenne < 400
+                    \item 2 : clients qui ont fait 2 achats il y a plus longtemps (environ plus de 250j) et/ou d'une valeur moyenne > 400
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+        \begin{column}{.45\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{VisuSpectralClusters.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsection{AgglomerativeClustering}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.55\textwidth}
+            \begin{figure}
+                \includegraphics[width=.49\textwidth]{ScoresAgglo.pdf}
+                \includegraphics[width=.49\textwidth]{pieAgglo.pdf}
+            \end{figure}
+            \begin{itemize}
+                \footnotesize
+                \item Les 6 clusters sont plutôt bien définis mais se chevauches légèrement plus que ceux de l'algorithme KMeans
+                \begin{itemize}
+                    \scriptsize
+                    \item 0 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 500
+                    \item 1 : clients qui ont fait plus de 4 achats d'une valeur moyenne < 450
+                    \item 2 : clients qui ont fait entre 2 et 4 achats d'une valeur moyenne > 400
+                    \item 3 : clients qui ont fait 2 il y a plus longtemps (> 300j pour les montants les moins importants et > 150j pour les montants plus importants)
+                    \item 4 : clients qui ont fait 3 achats ou 4 achats de valeurs plus importante (environ > 400) ou il y a plus longtemps (> 250j)
+                    \item clients qui ont fait 2 achats de valeurs très importante (> 3500)
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+        \begin{column}{.45\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{VisuAggloClusters.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsection{DBSCAN}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.55\textwidth}
+            \begin{figure}
+                \includegraphics[width=.49\textwidth]{ScoresDBSCAN.pdf}
+                \includegraphics[width=.49\textwidth]{pieDBSCAN.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Cet algorithme cherche lui même le nombre de cluster. Il en a créé 4 et éliminé quelques points. Les quatres clusters correspondent au nombre d'achats effectués
+                \begin{itemize}
+                    \item 0 : clients qui ont fait 2 achats
+                    \item 1 : clients qui ont fait 3 achats
+                    \item 2 : clients qui ont fait 4 achats
+                    \item 3 : clients qui ont fait 5 achats
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+        \begin{column}{.45\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{VisuDBSCANClusters.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsection{Birch}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.55\textwidth}
+            \begin{figure}
+                \hfill
+                \includegraphics[width=.42\textwidth]{ScoresBirch.pdf}
+                \hfill
+                \includegraphics[width=.42\textwidth]{pieBirch.pdf}
+                \hfill
+            \end{figure}
+            \begin{itemize}
+                \footnotesize
+                \item Les 9 clusters sont plutôt bien définis mais cela commence à faire un grand nombre de clusters pour différencier des clients
+                \begin{itemize}
+                    \scriptsize
+                    \item 0 : clients ayant fait entre 6 et 9 commandes
+                    \item 1 : clients ayant fait des commandes d'une valeur moyenne plutôt élevé (>800)
+                    \item 2 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt moyenne (entre 400 et 800)
+                    \item 3 : clients ayant fait 3 ou 4 commandes d'une valeur moyenne plutôt basse (<400) et il y a plus longtemps (>300j)
+                    \item 4 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt basse (<500) et plus récemment (<300j)
+                    \item 5 : clients ayant fait 2 commandes d'une valeur moyenne très élevée (>3500)
+                    \item 6 : clients ayant fait 4 ou 5 commandes plutôt récemment (<250j)
+                    \item 7 : clients ayant fait un très grand nombre de commandes (15)
+                    \item 8 : clients ayant fait 2 commandes d'une valeur moyenne plutôt basse (<450) et il y a plus longtemps (>350j)
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+        \begin{column}{.45\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{VisuBirchClusters.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsection{comparaison des modèles}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{columns}
+        \begin{column}{.6\textwidth}
+            \begin{itemize}
+                \item Plus le coefficient de silhouette est haut mieux les clusters sont définis
+                \item Il est calculé pour chaque élément et est composé de deux scores :
+                \begin{itemize}
+                    \item La distance entre cet élément et les autres éléments contenu dans la même classe
+                    \item La distance moyenne entre cet élément et ceux contenus dans la classe la plus proche
+                \end{itemize}
+                \item[]
+                \item Plus le score de Calinski-Harabasz est haut mieux lest clusters sont denses et bien séparés
+                \item Calcul le ratio de la somme des dispersions inter-clusters et de celle des dispersions intra-clusters
+                \item[] 
+                \item Plus le score de Davies-Bouldin est bas mieux les clusters sont définis
+                \item Calcul la similarité entre les clusters. Cette similarité compare la distance entre les clusters avec la taille des clusters
+            \end{itemize}
+        \end{column}
+        \begin{column}{.4\textwidth}
+            \begin{figure}
+                \includegraphics[width=\textwidth]{CompareScores.pdf}
+            \end{figure}
+        \end{column}
+    \end{columns}
+    Au vu de ces données je choisi d'utiliser l'algorithme KMeans qui a à la fois un coefficient de silhouette et un score de Calinski-Harabasz élevés
+\end{frame}
+
 
 \end{document}
