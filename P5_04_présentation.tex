@@ -84,7 +84,7 @@
     \begin{itemize}
         \item Client : Olist, site de e-commerce
               \begin{itemize}
-                  \item Souhaite effectuer un segmentation des clients
+                  \item Souhaite effectuer une segmentation des clients
                   \item[]
                   \item Comprendre les différents types d'utilisateurs
               \end{itemize}
@@ -160,7 +160,7 @@
     \begin{itemize}
         \item Études des clients = nécessité de regrouper les données de commandes par client
         \item[]
-        \item Permet de compter :
+        \item Permet d'obtenir :
               \begin{itemize}
                   \item la date de la dernière commande
                   \item le prix moyen d'une commande d'un client
@@ -332,7 +332,7 @@
                           \item 0 : clients qui ont fait 2 achats plutôt recemment (environ moins de 250j) d'une valeur moyenne < 500
                           \item 1 : clients qui ont fait plus de 4 achats d'une valeur moyenne < 450
                           \item 2 : clients qui ont fait entre 2 et 4 achats d'une valeur moyenne > 400
-                          \item 3 : clients qui ont fait 2 il y a plus longtemps (> 300j pour les montants les moins importants et > 150j pour les montants plus importants)
+                          \item 3 : clients qui ont fait 2 commandes il y a plus longtemps (> 300j pour les montants les moins importants et > 150j pour les montants plus importants)
                           \item 4 : clients qui ont fait 3 achats ou 4 achats de valeurs plus importante (environ > 400) ou il y a plus longtemps (> 250j)
                           \item clients qui ont fait 2 achats de valeurs très importante (> 3500)
                       \end{itemize}
@@ -389,7 +389,7 @@
                       \begin{itemize}
                           \scriptsize
                           \item 0 : clients ayant fait entre 6 et 9 commandes
-                          \item 1 : clients ayant fait des commandes d'une valeur moyenne plutôt élevé (>800)
+                          \item 1 : clients ayant fait des commandes d'une valeur moyenne plutôt élevée (>800)
                           \item 2 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt moyenne (entre 400 et 800)
                           \item 3 : clients ayant fait 3 ou 4 commandes d'une valeur moyenne plutôt basse (<400) et il y a plus longtemps (>300j)
                           \item 4 : clients ayant fait 2 ou 3 commandes d'une valeur moyenne plutôt basse (<500) et plus récemment (<300j)
@@ -413,17 +413,17 @@
     \begin{columns}
         \begin{column}{.6\textwidth}
             \begin{itemize}
-                \item Plus le coefficient de silhouette est haut mieux les clusters sont définis
-                \item Il est calculé pour chaque élément et est composé de deux scores :
+                \item Plus le coefficient de silhouette est haut plus les clusters sont définis
+                \item Il est calculé pour chaque objet et est composé de deux scores :
                       \begin{itemize}
-                          \item La distance entre cet élément et les autres éléments contenu dans la même classe
-                          \item La distance moyenne entre cet élément et ceux contenus dans la classe la plus proche
+                          \item La distance entre cet objet et les autres objets contenu dans la même classe
+                          \item La distance moyenne entre cet objet et ceux contenus dans la classe la plus proche
                       \end{itemize}
                 \item[]
-                \item Plus le score de Calinski-Harabasz est haut mieux lest clusters sont denses et bien séparés
+                \item Plus le score de Calinski-Harabasz est haut plus les clusters sont denses et bien séparés
                 \item Calcul le ratio de la somme des dispersions inter-clusters et de celle des dispersions intra-clusters
                 \item[]
-                \item Plus le score de Davies-Bouldin est bas mieux les clusters sont définis
+                \item Plus le score de Davies-Bouldin est bas plus les clusters sont définis
                 \item Calcul la similarité entre les clusters. Cette similarité compare la distance entre les clusters avec la taille des clusters
             \end{itemize}
         \end{column}
@@ -445,7 +445,7 @@
         \item[]
         \item Utilisation du score ARI : Adjusted Rand Index
         \begin{itemize}
-            \item Compare la similarité entre les labels assignés à un même élément pour différentes méthodes de classification
+            \item Compare la similarité entre les labels assignés à un même objet pour différentes méthodes de classification
         \end{itemize}
         \item[]
         \item Sélection et ajout (incrémentation) des clients qui nous intéressent (plus de 2 commandes effectuées et reçues) par période donnée (mensuelle, trimestrielle, semestrielle)
@@ -466,9 +466,9 @@
             \end{figure}
             \begin{itemize}
                 \footnotesize
-                \item Le premier semestre semble être encore assez bien corrélé (ARI>0.9) le second chute assez brutalement (ARI<0.6)
-                \item Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente ensuite jusqu'au 3è trimestre. On retrouve la chute importante au 4è trimestre
-                \item Les trois premiers mois les données restent bien corrélées (ARI>0.98) mais après on observe une pente plus importante entre le 3è et le 11è mois avec une chute au 12è mois
+                \item[\uparrow] Le premier semestre semble être encore assez bien corrélé (ARI>0.9) le second chute assez brutalement (ARI<0.6)
+                \item[$\nearrow$] Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente ensuite jusqu'au 3è trimestre. On retrouve la chute importante au 4è trimestre
+                \item[\rightarrow] Les trois premiers mois les données restent bien corrélées (ARI>0.98) mais après on observe une pente plus importante entre le 3è et le 11è mois avec une chute au 12è mois  
             \end{itemize}
         \end{column}
         \begin{column}{.5\textwidth}
