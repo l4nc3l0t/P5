@@ -93,7 +93,7 @@
               \begin{itemize}
                   \item Fournir une description actionable de la segmentation et de sa logique pour une utilisation optimale
                   \item[]
-                  \item Faire une proposition de contrat de maintenance à partir de l'analyse de la stabilité de la classification au cours du temps
+                  \item Faire une proposition de contrat de maintenance à partir de l'analyse de la stabilité de la segmentation au cours du temps
               \end{itemize}
     \end{itemize}
 \end{frame}
@@ -132,18 +132,9 @@
         \begin{column}{.4\textwidth}
             \begin{itemize}
                 \item Fichier central contenant les commandes (olist\_orders\_dataset)
+                \item[]
                 \item Des identifiants permettent de rassembler les différents fichiers constituant la base de données
-                      \begin{itemize}
-                          \item order\_id relie les données de paiement, les produits commandés et les données de notation aux commandes,
-                          \item[]
-                          \item customer\_id relie les identifiants des clients aux commandes,
-                          \item[]
-                          \item products\_id relie les données concernant les produits aux produits commandés,
-                          \item[]
-                          \item seller\_id relie les données de vendeurs aux produits commandés,
-                          \item[]
-                          \item zip\_code\_prefix relie les données de géolocalisation des acheteurs et des vendeurs
-                      \end{itemize}
+                \item[]
                 \item Ces données vont nous permettre de calculer des variables plus intéressantes dans le cadre de cette segmentation des clients
             \end{itemize}
         \end{column}

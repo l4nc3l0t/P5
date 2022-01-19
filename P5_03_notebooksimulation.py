@@ -44,7 +44,7 @@ Orders = pd.read_csv('olist_orders_dataset.csv')
 # fonction de sélection de données au modèle RFM
 def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
 
-    # conservation des commandes livrées
+    # conservation des commandes livrées
     DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(
         axis=1).drop(columns='order_status')
     DelivOrders[['order_purchase_timestamp',
@@ -59,28 +59,16 @@ def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
         # sélection des commandes ayant été effectuées avant une certaine date
         DelivOrders = DelivOrders.set_index(
             ['order_purchase_timestamp']).loc[:base_data_date].reset_index()
-
-    # identifiant des clients ayant réalisés plus de 2 commandes livrées
-    CustomersMultID = Customers.merge(
-        DelivOrders, on='customer_id',
-        how='right').groupby('customer_unique_id').count()['customer_id'][
-            Customers.merge(DelivOrders, on='customer_id',
-                            how='right').groupby('customer_unique_id').count()
-            ['customer_id'] >= 2].reset_index().rename(
+    OrdersNb = Customers.merge(
+        DelivOrders, on='customer_id', how='right').groupby(
+            'customer_unique_id').count()['customer_id'].reset_index().rename(
                 columns={'customer_id': 'orders_number'})
-    # dataframe clients ayant réalisés plus de 2 commandes
-    CustomersMulti = CustomersMultID.merge(
-        Customers[['customer_unique_id', 'customer_id']],
-        on='customer_unique_id',
-        how='left')
 
-    # dataframe du temps depuis le dernier achat
-    LastPurchase = CustomersMultID.merge(
-        Customers, on='customer_unique_id',
-        how='left').merge(DelivOrders, on='customer_id', how='right').groupby(
-            'customer_unique_id').order_purchase_timestamp.max().reset_index(
-            ).rename(
-                columns={'order_purchase_timestamp': 'last_purchase_date'})
+    # dataframe du temps depuis le dernier achat
+    LastPurchase = Customers.merge(
+        DelivOrders, on='customer_id', how='right'
+    ).groupby('customer_unique_id').order_purchase_timestamp.max().reset_index(
+    ).rename(columns={'order_purchase_timestamp': 'last_purchase_date'})
     LastPurchase['last_purchase_days'] = -(
         LastPurchase.last_purchase_date -
         LastPurchase.last_purchase_date.max()) / (np.timedelta64(1, 'D'))
@@ -94,15 +82,12 @@ def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
     PaymentsGroup = DelivPayments.groupby('order_id').sum('payment_value')
 
     # groupement par client et calcul de la somme et de la moyenne de ses achats
-    PaymentsCust = CustomersMultID.merge(
-        Customers[['customer_unique_id', 'customer_id']],
-        on='customer_unique_id',
-        how='left').merge(DelivOrders[['customer_id', 'order_id']],
-                          on='customer_id').merge(
-                              PaymentsGroup, on='order_id',
-                              how='left').groupby('customer_unique_id').agg({
-                                  'payment_value': {'sum', 'mean'},
-                              }).reset_index()
+    PaymentsCust = Customers[['customer_unique_id', 'customer_id']].merge(
+        DelivOrders[['customer_id', 'order_id']],
+        on='customer_id', how='right').merge(PaymentsGroup, on='order_id',
+                                how='left').groupby('customer_unique_id').agg({
+                                    'payment_value': {'sum', 'mean'},
+                                }).reset_index()
     PaymentsCust['total_payment'] = PaymentsCust.payment_value['sum']
     PaymentsCust['mean_payment'] = PaymentsCust.payment_value['mean']
     PaymentsCust.columns = PaymentsCust.columns.droplevel(1)
@@ -110,16 +95,15 @@ def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
 
     # agrégation des jeux de données entre eux
     Data = LastPurchase[['customer_unique_id', 'last_purchase_days']].merge(
-        CustomersMulti.customer_unique_id.drop_duplicates(),
-        on='customer_unique_id',
-        how='right').merge(PaymentsCust, on='customer_unique_id')
+        OrdersNb, on='customer_unique_id').merge(PaymentsCust,
+                                                 on='customer_unique_id')
 
     return Data
 
 
-# %%
-# calcul et visualisation du score ARI entre les données les plus récentes et 
-# celles d'une période donnée
+# %%
+# calcul et visualisation du score ARI entre les données les plus récentes et
+# celles d'une période donnée
 def simulationMAJData(customers, payments, orders, base_data_date, period):
     # utilisation des commandes livrées pour avoir les dates de commandes
     DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(
@@ -147,7 +131,7 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
                               to_pydatetime()))) + 1))
         for m, rm in zip(months, reversed(months)):
             # pour chaque nombre de mois ajout des commandes effectuées pendant
-            # ces mois
+            # ces mois
             Data['M{}'.format(rm)] = selectDataRFM(
                 Customers, Payments, Orders,
                 (datetime.datetime.strptime(base_data_date, '%Y-%m') +
@@ -204,18 +188,18 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
     for k in Data.keys():
         DataFull = selectDataRFM(Customers, Payments, Orders)
         # sélection des données clients finales qui correspondent aux clients
-        # présents dans les données de la période choisie
+        # présents dans les données de la période choisie
         DataFull = DataFull[DataFull.customer_unique_id.isin(
             Data[k].customer_unique_id)].drop(columns='customer_unique_id')
         DataFull_fit = StandardScaler().fit(DataFull)
         ScaledDataFull = DataFull_fit.transform(DataFull)
-        true_labels[k] = KMeans(n_clusters=5,
+        true_labels[k] = KMeans(n_clusters=4,
                                 random_state=50).fit_predict(ScaledDataFull)
         # KMeans sur les données de la période choisie
         DataP = Data[k].drop(columns='customer_unique_id')
         DataP_fit = StandardScaler().fit(DataP)
         ScaledDataP = DataP_fit.transform(DataP)
-        pred_labels[k] = KMeans(n_clusters=5,
+        pred_labels[k] = KMeans(n_clusters=4,
                                 random_state=50).fit_predict(ScaledDataP)
         # calcul du score ARI
         ARI[k] = (adjusted_rand_score(true_labels[k], pred_labels[k]))
@@ -232,12 +216,13 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
     fig.update_xaxes(autorange='reversed')
     return fig
 
+
 # %% [markdown]
-# L'utilisation du score ARI (adjusted rand score) permet de regarder si les 
-# points sont toujours dans le mêmes clusters entre deux classifications 
-# différentes. Nous comparons pour chaque période le clusters dans lequel sont
+# L'utilisation du score ARI (adjusted rand score) permet de regarder si les
+# points sont toujours dans le mêmes clusters entre deux classifications
+# différentes. Nous comparons pour chaque période le clusters dans lequel sont
 # les clients dans les données actuelles et le cluster dans lequel sont les données
-# de la période correspondante.
+# de la période correspondante.
 # %%
 # évolution du score ARI avec ajouts de données semestrielles
 figS = simulationMAJData(Customers, Payments, Orders, '2017-09',
@@ -261,10 +246,10 @@ figT.show(renderer='notebook')
 if write_data is True:
     figT.write_image('./Figures/simMAJT.pdf', height=300)
 # %% [markdown]
-# Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente 
+# Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente
 # ensuite jusqu'au 3è trimestre. On retrouve la chute importante au 4è trimestre
 # %%
-# évolution du score ARI avec ajouts de données mensuelles
+# évolution du score ARI avec ajouts de données mensuelles
 figM = simulationMAJData(Customers, Payments, Orders, '2017-09', 'mensuelle')
 figM.show(renderer='notebook')
 if write_data is True:
@@ -276,9 +261,9 @@ if write_data is True:
 
 #### Conclusion
 
-# Afin de conserver des données toujours au plus près de la réalité (ARI>0.98) 
+# Afin de conserver des données toujours au plus près de la réalité (ARI>0.98)
 # il me semble idéal de renouveler le modèle tout les 3 mois (mise à jours
 # trimestrielle). Si le modèle n'est renouvelé que tout les 6 mois on sera moins
-# proche de la réalité mais cela me semble rester pertinent car l'ARI reste autour 
+# proche de la réalité mais cela me semble rester pertinent car l'ARI reste autour
 # de 0.9. Par contre au delà la chute du score s'accélère et au bout d'un an l'ARI
 # passe en dessous de 0.6.

@@ -55,6 +55,8 @@ Customers.info()
 #- customer_zip_code_prefix : clé commune avec les données de localisation
 #- customer_city' : la ville du client
 #- customer_state' : l'état (région) du client
+# %%
+Customers.describe()
 # %%[markdown]
 #### Localisation
 # %%
@@ -65,6 +67,8 @@ Geolocation.info()
 #- geolocation_lng : longitude
 #- geolocation_city : ville
 #- geolocation_state : état
+# %%
+Geolocation.describe()
 # %% [markdown]
 #### Produits
 # %%
@@ -77,7 +81,8 @@ Items.info()
 #- shipping_limit_date : date limite pour transmettre la commande au transporteur
 #- price : prix du produit
 #- freight_value : frais de port
-
+# %%
+Items.describe()
 # %% [markdown]
 #### Paiement
 # %%
@@ -88,7 +93,8 @@ Payments.info()
 #- payment_type : type de moyen de paiement
 #- payment_installments : nombre de versements choisi par l'acheteur
 #- payment_value : valeur de la transaction
-
+# %%
+Payments.describe()
 # %% [markdown]
 #### Note/commentaire
 
@@ -102,6 +108,8 @@ Reviews.info()
 #- review_comment_message : commentaire
 #- review_creation_date : date d'envoie du questionnaire de satisfaction
 #- review_answer_timestamp : date de reception du questionnaire
+# %%
+Reviews.describe()
 # %% [markdown]
 #### Commandes
 # %%
@@ -116,6 +124,8 @@ Orders.info()
 #- order_delivered_carrier_date : date où la commande à été transmise au transporteur
 #- order_delivered_customer_date : date de livraison
 #- order_estimated_delivery_date : date de livraison estimée à la commande
+# %%
+Orders.describe()
 # %% [markdown]
 #### Produits
 # %%
@@ -130,7 +140,8 @@ Products.info()
 #- product_length_cm : longueur du produit
 #- product_height_cm : hauteur du produit
 #- product_width_cm : largeur du produit
-
+# %%
+Products.describe()
 # %% [markdown]
 #### Vendeurs
 # %%
@@ -140,7 +151,8 @@ Sellers.info()
 #- seller_zip_code_prefix : clé commune avec les données de localisation
 #- seller_city : ville du vendeur
 #- seller_state : état (région) du vendeur
-
+# %%
+Sellers.describe()
 # %% [markdown]
 #### Traduction des noms de produits
 # %%
@@ -148,6 +160,8 @@ ProdNameTranslation.info()
 # %% [markdown]
 #- product_category_name : noms des catégories de produits en portugais brésilien
 #- product_category_name_english : noms des catégories de produits en anglais
+# %%
+ProdNameTranslation.describe()
 # %% [markdown]
 #Visualisation des liens entre les fichiers
 #![Liens fichiers](https://i.imgur.com/HRhd2Y0.png "Visualisation des liens entre les
@@ -181,7 +195,7 @@ fig.update_layout(showlegend=False)
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/NbCommandesJ.pdf', height=350)
-# %%
+# %%
 fig = px.line(DelivOrders.groupby(
     DelivOrders.order_purchase_timestamp.dt.date).count()['order_id'],
               title='Nombre de commandes par jours',
@@ -213,6 +227,37 @@ if write_data is True:
 
 # %% [markdown]
 #### Analyse données clients
+# %%
+# comptage du nombre de commandes par clients
+OrdersNb = Customers.merge(DelivOrders, on='customer_id', how='right').groupby(
+    'customer_unique_id').count()['customer_id'].reset_index().rename(
+        columns={
+            'customer_id': 'orders_number'
+        }).merge(Customers[['customer_unique_id', 'customer_zip_code_prefix']],
+                 on='customer_unique_id',
+                 how='left').drop_duplicates('customer_unique_id')
+# %%
+OrdersNb['orders_number'].value_counts().sort_index()
+# %% [markdown]
+# Au dessus de 4 commandes on a moins de 100 clients par nombre de commande 
+# on se limitera aux clients ayant fait 3 commandes maximum
+# %%
+OrdersNbClean = OrdersNb[OrdersNb.orders_number <= 3]
+# %%
+# visualisation de la proportion de clients ayant fait au moins 2 commandes
+fig = px.pie(
+    values=[
+        OrdersNb[OrdersNb.orders_number >= 2].count()['customer_unique_id'],
+        OrdersNb[OrdersNb.orders_number < 2].count()['customer_unique_id']
+    ],
+    names=['Au moins 2 commandes', '1 seule commande'],
+    title='Proportion de clients en fonction du nombre<br>de commandes effectuées'
+)
+fig.show(renderer='notebook')
+if write_data is True:
+    fig.write_image('./Figures/piePropNbOrders.pdf')
+# %% [markdown]
+# Seul 3% des clients effectuent au moins 2 commandes
 # %%
 # identifiant des clients ayant réalisés plus de 2 commandes livrées
 CustomersMultID = Customers.merge(
@@ -263,12 +308,11 @@ print('Temps moyen entre deux commandes {} jours'.format(
 # c'est la durée moyenne entre 2 commandes
 # %%
 # calcul du temps depuis le dernier achat
-LastPurchase = CustomersMultID.merge(
-    Customers[['customer_unique_id', 'customer_id']],
-    on='customer_unique_id',
-    how='left').merge(DelivOrders, on='customer_id').groupby(
-        'customer_unique_id').order_purchase_timestamp.max().reset_index(
-        ).rename(columns={'order_purchase_timestamp': 'last_purchase_date'})
+LastPurchase = Customers[[
+    'customer_unique_id', 'customer_id'
+]].merge(DelivOrders, on='customer_id', how='right').groupby(
+    'customer_unique_id').order_purchase_timestamp.max().reset_index().rename(
+        columns={'order_purchase_timestamp': 'last_purchase_date'})
 LastPurchase['last_purchase_days'] = -(
     LastPurchase.last_purchase_date -
     LastPurchase.last_purchase_date.max()) / (np.timedelta64(1, 'D'))
@@ -303,21 +347,26 @@ PaymentsGroup = DelivPayments.groupby('order_id').sum('payment_value').merge(
 # %%
 # groupement par client et calcul de la somme des ses achats et de la moyenne du
 # pourcentage de la part payée par bon d'achat
-PaymentsCust = CustomersMultID.merge(
-    Customers[['customer_unique_id', 'customer_id']],
-    on='customer_unique_id',
-    how='left').merge(DelivOrders[['customer_id', 'order_id']],
-                      on='customer_id').merge(
-                          PaymentsGroup, on='order_id',
-                          how='left').groupby('customer_unique_id').agg({
-                              'payment_value': {'sum', 'mean'},
-                              'voucher_percent_part':
-                              'mean'
-                          }).reset_index()
+PaymentsCust = Customers[['customer_unique_id', 'customer_id']].merge(
+    DelivOrders[['customer_id', 'order_id']], on='customer_id',
+    how='right').merge(PaymentsGroup, on='order_id',
+                       how='left').groupby('customer_unique_id').agg({
+                           'payment_value': {'sum', 'mean'},
+                           'voucher_percent_part':
+                           'mean'
+                       }).reset_index()
 PaymentsCust['total_payment'] = PaymentsCust.payment_value['sum']
 PaymentsCust['mean_payment'] = PaymentsCust.payment_value['mean']
 PaymentsCust.columns = PaymentsCust.columns.droplevel(1)
 PaymentsCust.drop(columns='payment_value', inplace=True)
+# %%
+# nombre de clients qui dépensent plus de 3000
+PaymentsCust[PaymentsCust.mean_payment < 3000].count()
+# %% [markdown]
+# Seul une cinquantaine de clients dépenses plus de 3000 nous allons donc les
+# supprimer
+# %%
+PaymentsCustClean = PaymentsCust[PaymentsCust.mean_payment<3000]
 # %% [markdown]
 #### Analyse données produits
 # %%
@@ -426,45 +475,42 @@ ItemsMean = ItemsProd.groupby('order_id').agg({
 # %%
 # nombre d'objets par catégories achetés par une personne et somme des prix
 # et des frais de port
-DelivItemCust = CustomersMultID.merge(
-    Customers[['customer_unique_id', 'customer_id']],
-    on='customer_unique_id',
-    how='left').merge(
-        DelivOrders[['customer_id', 'order_id']], on='customer_id').merge(
-            ItemsMean, on='order_id',
-            how='left').groupby('customer_unique_id').agg({
-                'order_item_id':
-                'max',
-                'price':
-                'sum',
-                'freight_value':
-                'sum',
-                'product_category_name_art_media':
-                'sum',
-                'product_category_name_fashion_clothing_accessories':
-                'sum',
-                'product_category_name_flowers_gifts':
-                'sum',
-                'product_category_name_groceries_food_drink':
-                'sum',
-                'product_category_name_health_beauty':
-                'sum',
-                'product_category_name_home_furniture':
-                'sum',
-                'product_category_name_industry_security':
-                'sum',
-                'product_category_name_technology':
-                'sum',
-                'product_category_name_tools_car':
-                'sum',
-                'product_category_name_toys_baby':
-                'sum'
-            }).reset_index().rename(
-                columns={
-                    'order_item_id': 'max_items_order',
-                    'price': 'total_price',
-                    'freight_value': 'total_freight_value'
-                })
+DelivItemCust = Customers[['customer_unique_id', 'customer_id']].merge(
+    DelivOrders[['customer_id', 'order_id']], on='customer_id').merge(
+        ItemsMean, on='order_id',
+        how='left').groupby('customer_unique_id').agg({
+            'order_item_id':
+            'max',
+            'price':
+            'sum',
+            'freight_value':
+            'sum',
+            'product_category_name_art_media':
+            'sum',
+            'product_category_name_fashion_clothing_accessories':
+            'sum',
+            'product_category_name_flowers_gifts':
+            'sum',
+            'product_category_name_groceries_food_drink':
+            'sum',
+            'product_category_name_health_beauty':
+            'sum',
+            'product_category_name_home_furniture':
+            'sum',
+            'product_category_name_industry_security':
+            'sum',
+            'product_category_name_technology':
+            'sum',
+            'product_category_name_tools_car':
+            'sum',
+            'product_category_name_toys_baby':
+            'sum'
+        }).reset_index().rename(
+            columns={
+                'order_item_id': 'max_items_order',
+                'price': 'total_price',
+                'freight_value': 'total_freight_value'
+            })
 # %% [markdown]
 #### Analyse des données de localisation
 # %%
@@ -479,29 +525,22 @@ Geolocation.head(3)
 #### Analyse des notes/commentaires
 # %%
 # calcul de la moyenne des notes laissées par un client
-NoteMean = CustomersMultID.drop(columns='orders_number').merge(
-    Customers[['customer_unique_id', 'customer_id']],
-    on='customer_unique_id',
-    how='left').merge(DelivOrders[['customer_id', 'order_id']],
-                      on='customer_id').merge(
-                          Reviews, on='order_id',
-                          how='left').groupby('customer_unique_id').mean(
-                              'review_score').reset_index()
+NoteMean = Customers[['customer_unique_id', 'customer_id']].merge(
+    DelivOrders[['customer_id', 'order_id']], on='customer_id',
+    how='right').merge(Reviews, on='order_id', how='left').groupby(
+        'customer_unique_id').mean('review_score').reset_index()
 # %%
 # agrégation des jeux de données entre eux
-Data = CustomersMulti.drop(
-    columns=['customer_id', 'customer_city', 'customer_state']
-).drop_duplicates('customer_unique_id').merge(
-    DelivItemCust, on='customer_unique_id').merge(
-        DateDiffMean, on='customer_unique_id', how='left').merge(
-            LastPurchase[['customer_unique_id', 'last_purchase_days']],
-            on='customer_unique_id',
-            how='left').merge(NoteMean, on='customer_unique_id').merge(
-                PaymentsCust, on='customer_unique_id').merge(
-                    Geolocation,
-                    left_on='customer_zip_code_prefix',
-                    right_on='geolocation_zip_code_prefix').drop(
-                        columns='geolocation_zip_code_prefix')
+Data = OrdersNbClean.merge(DelivItemCust, on='customer_unique_id').merge(
+    DateDiffMean, on='customer_unique_id', how='left').merge(
+        LastPurchase[['customer_unique_id', 'last_purchase_days']],
+        on='customer_unique_id',
+        how='left').merge(NoteMean, on='customer_unique_id').merge(
+            PaymentsCustClean, on='customer_unique_id').merge(
+                Geolocation,
+                left_on='customer_zip_code_prefix',
+                right_on='geolocation_zip_code_prefix').drop(
+                    columns='geolocation_zip_code_prefix')
 Data.date_order_mean_dif_days.fillna(0, inplace=True)
 # %%
 Data['total_items'] = Data.loc[:,
@@ -552,9 +591,15 @@ for a1, a2 in [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11], [12, 13],
 # %%
 DataRFM = Data[['last_purchase_days', 'orders_number',
                 'mean_payment']].dropna()
+
 if write_data is True:
     DataRFM.to_csv('OlistDataRFM.csv', index=False)
-
+# %%
+DataRFMS = Data[[
+    'last_purchase_days', 'orders_number', 'mean_payment', 'review_score'
+]].dropna()
+if write_data is True:
+    DataRFMS.to_csv('OlistDataRFMS.csv', index=False)
 # %%
 # visualisation des données RFM
 for col in DataRFM.columns:

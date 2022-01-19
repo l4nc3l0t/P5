@@ -38,6 +38,7 @@ def visuPCA(df, pca, components, loadings, axis, color=None):
 from time import time
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, \
     davies_bouldin_score
+from sklearn.preprocessing import StandardScaler
 
 
 # variation d'un paramètre de modèle de classification
@@ -75,6 +76,19 @@ def searchClusters(model, data, paramfix: dict, paramtuned: str,
             davies_bouldin_score(data, pred_labels)
         }
         Results = Results.append(result, ignore_index=True)
+        scaledScores = pd.DataFrame(
+            data=StandardScaler().fit_transform(Results[[
+                'silhouette_score', 'calinski_harabasz_score',
+                'davies_bouldin_score'
+            ]]),
+            columns=[
+                'scaled_silhouette_score', 'scaled_calinski_harabasz_score',
+                'scaled_davies_bouldin_score'
+            ])
+        Results['metascore'] = (scaledScores['scaled_silhouette_score'] +
+                                scaledScores['scaled_calinski_harabasz_score'] -
+                                scaledScores['scaled_davies_bouldin_score'])
+
     return Results
 
 
@@ -85,7 +99,7 @@ import plotly.graph_objects as go
 # visualisation des scores des modèles de classification
 def graphScores(Results):
     if (Results.inertia.unique().all() == None) is True:
-        fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
+        fig = make_subplots(rows=4, cols=1, shared_xaxes=True)
         fig.add_trace(go.Scatter(x=[*Results.model],
                                  y=[*Results.silhouette_score],
                                  name='Silhouette'),
@@ -101,8 +115,13 @@ def graphScores(Results):
                                  name='Davies-Bouldin'),
                       row=3,
                       col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.metascore],
+                                 name='meta-score'),
+                      row=4,
+                      col=1)
     else:
-        fig = make_subplots(rows=4, cols=1, shared_xaxes=True)
+        fig = make_subplots(rows=5, cols=1, shared_xaxes=True)
         fig.add_trace(go.Scatter(x=[*Results.model],
                                  y=[*Results.silhouette_score],
                                  name='Silhouette'),
@@ -119,9 +138,14 @@ def graphScores(Results):
                       row=3,
                       col=1)
         fig.add_trace(go.Scatter(x=[*Results.model],
+                                 y=[*Results.metascore],
+                                 name='meta-score'),
+                      row=4,
+                      col=1)
+        fig.add_trace(go.Scatter(x=[*Results.model],
                                  y=[*Results.inertia],
                                  name='Distortion'),
-                      row=4,
+                      row=5,
                       col=1)
     fig.update_layout(
         title_text=
@@ -156,6 +180,33 @@ def graphClusters(modelname, data, labels: list, clusters_centers=None):
     fig.update_layout(legend={'itemsizing': 'constant'})
     return fig
 
+# graph data avec couleurs par clusters et centroïdes
+def graphClustersRFMS(modelname, data, labels: list, clusters_centers=None):
+    fig = px.scatter_3d(data,
+                        x='last_purchase_days',
+                        y='mean_payment',
+                        z='review_score',
+                        size='orders_number',
+                        title='Clusters créés par {}'.format(modelname),
+                        color=labels.astype(str),
+                        opacity=1,
+                        labels={'color': 'Clusters'})
+    #fig.update_traces(marker_size=3)
+    if clusters_centers is not None:
+        fig.add_trace(
+            go.Scatter3d(
+                x=clusters_centers['last_purchase_days'],
+                y=clusters_centers['mean_payment'],
+                z=clusters_centers['review_score'],
+                mode='markers',
+                marker_symbol='x',
+                marker_size=5,
+                hovertemplate=
+                "recency: %{x}<br>frequency: %{y}<br>monetary: %{z}",
+                name="Cluster center",
+            ))
+    fig.update_layout(legend={'itemsizing': 'constant'})
+    return fig
 
 # visualisation du nombre de clients par clusters
 def pieNbCustClust(modelname: str, labels):
