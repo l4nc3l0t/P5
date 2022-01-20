@@ -38,11 +38,12 @@ else:
 Customers = pd.read_csv('olist_customers_dataset.csv')
 Payments = pd.read_csv('olist_order_payments_dataset.csv')
 Orders = pd.read_csv('olist_orders_dataset.csv')
+Reviews = pd.read_csv('olist_order_reviews_dataset.csv')
 
 
 # %%
 # fonction de sélection de données au modèle RFM
-def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
+def selectDataRFMS(Customers, Payments, Orders, Reviews, base_data_date=None):
 
     # conservation des commandes livrées
     DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(
@@ -84,19 +85,29 @@ def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
     # groupement par client et calcul de la somme et de la moyenne de ses achats
     PaymentsCust = Customers[['customer_unique_id', 'customer_id']].merge(
         DelivOrders[['customer_id', 'order_id']],
-        on='customer_id', how='right').merge(PaymentsGroup, on='order_id',
-                                how='left').groupby('customer_unique_id').agg({
-                                    'payment_value': {'sum', 'mean'},
-                                }).reset_index()
+        on='customer_id',
+        how='right').merge(PaymentsGroup, on='order_id',
+                           how='left').groupby('customer_unique_id').agg({
+                               'payment_value': {'sum', 'mean'},
+                           }).reset_index()
     PaymentsCust['total_payment'] = PaymentsCust.payment_value['sum']
     PaymentsCust['mean_payment'] = PaymentsCust.payment_value['mean']
     PaymentsCust.columns = PaymentsCust.columns.droplevel(1)
     PaymentsCust.drop(columns='payment_value', inplace=True)
 
+    # calcul de la moyenne des notes laissées par un client
+    NoteMean = Customers[['customer_unique_id', 'customer_id']].merge(
+        DelivOrders[['customer_id', 'order_id']],
+        on='customer_id',
+        how='right').merge(Reviews, on='order_id', how='left').groupby(
+            'customer_unique_id').mean('review_score').reset_index()
+
     # agrégation des jeux de données entre eux
     Data = LastPurchase[['customer_unique_id', 'last_purchase_days']].merge(
-        OrdersNb, on='customer_unique_id').merge(PaymentsCust,
-                                                 on='customer_unique_id')
+        OrdersNb, on='customer_unique_id').merge(
+            PaymentsCust,
+            on='customer_unique_id').merge(NoteMean,
+                                           on='customer_unique_id').dropna()
 
     return Data
 
@@ -104,7 +115,8 @@ def selectDataRFM(Customers, Payments, Orders, base_data_date=None):
 # %%
 # calcul et visualisation du score ARI entre les données les plus récentes et
 # celles d'une période donnée
-def simulationMAJData(customers, payments, orders, base_data_date, period):
+def simulationMAJData(Customers, Payments, Orders, Reviews, base_data_date,
+                      period):
     # utilisation des commandes livrées pour avoir les dates de commandes
     DelivOrders = Orders[Orders.order_status == 'delivered'].dropna(
         axis=1).drop(columns='order_status')
@@ -132,8 +144,8 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
         for m, rm in zip(months, reversed(months)):
             # pour chaque nombre de mois ajout des commandes effectuées pendant
             # ces mois
-            Data['M{}'.format(rm)] = selectDataRFM(
-                Customers, Payments, Orders,
+            Data['M{}'.format(rm)] = selectDataRFMS(
+                Customers, Payments, Orders, Reviews,
                 (datetime.datetime.strptime(base_data_date, '%Y-%m') +
                  relativedelta(months=m)).strftime('%Y-%m'))
     # simulation trimestrielle
@@ -153,8 +165,8 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
         for t, rt in zip(trimestre, reversed(trimestre)):
             # pour chaque nombre de trimestre ajout des commandes effectuées
             # pendant ces mois
-            Data['T{}'.format(rt)] = selectDataRFM(
-                Customers, Payments, Orders,
+            Data['T{}'.format(rt)] = selectDataRFMS(
+                Customers, Payments, Orders, Reviews,
                 (datetime.datetime.strptime(base_data_date, '%Y-%m') +
                  relativedelta(months=t * 3)).strftime('%Y-%m'))
     # simulation semestrielle
@@ -174,8 +186,8 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
         for s, rs in zip(semestre, reversed(semestre)):
             # pour chaque nombre de semestre ajout des commandes effectuées
             # pendant ces mois
-            Data['S{}'.format(rs)] = selectDataRFM(
-                Customers, Payments, Orders,
+            Data['S{}'.format(rs)] = selectDataRFMS(
+                Customers, Payments, Orders, Reviews,
                 (datetime.datetime.strptime(base_data_date, '%Y-%m') +
                  relativedelta(months=s * 6)).strftime('%Y-%m'))
 
@@ -186,20 +198,20 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
     pred_labels = {}
     ARI = {}
     for k in Data.keys():
-        DataFull = selectDataRFM(Customers, Payments, Orders)
+        DataFull = selectDataRFMS(Customers, Payments, Orders, Reviews)
         # sélection des données clients finales qui correspondent aux clients
         # présents dans les données de la période choisie
         DataFull = DataFull[DataFull.customer_unique_id.isin(
             Data[k].customer_unique_id)].drop(columns='customer_unique_id')
         DataFull_fit = StandardScaler().fit(DataFull)
         ScaledDataFull = DataFull_fit.transform(DataFull)
-        true_labels[k] = KMeans(n_clusters=4,
+        true_labels[k] = KMeans(n_clusters=6,
                                 random_state=50).fit_predict(ScaledDataFull)
         # KMeans sur les données de la période choisie
         DataP = Data[k].drop(columns='customer_unique_id')
         DataP_fit = StandardScaler().fit(DataP)
         ScaledDataP = DataP_fit.transform(DataP)
-        pred_labels[k] = KMeans(n_clusters=4,
+        pred_labels[k] = KMeans(n_clusters=6,
                                 random_state=50).fit_predict(ScaledDataP)
         # calcul du score ARI
         ARI[k] = (adjusted_rand_score(true_labels[k], pred_labels[k]))
@@ -225,45 +237,44 @@ def simulationMAJData(customers, payments, orders, base_data_date, period):
 # de la période correspondante.
 # %%
 # évolution du score ARI avec ajouts de données semestrielles
-figS = simulationMAJData(Customers, Payments, Orders, '2017-09',
+figS = simulationMAJData(Customers, Payments, Orders, Reviews, '2017-09',
                          'semestrielle')
 figS.show(renderer='notebook')
 if write_data is True:
     figS.write_image('./Figures/simMAJS.pdf', height=300)
 # %%
-figS = simulationMAJData(Customers, Payments, Orders, '2017-09',
+figS = simulationMAJData(Customers, Payments, Orders, Reviews, '2017-09',
                          'semestrielle')
 if write_data is True:
     figS.write_image('./Figures/simMAJS.pdf', height=300)
 # %% [markdown]
-# Le premier semestre semble être encore assez bien corrélé (ARI>0.9) le second
-# chute assez brutalement (ARI<0.6)
+# On observe une baisse du score tout au long de l'année avec une légère accélération
+# (pente plus importante) sur la deuxième moitié
 # %%
 # évolution du score ARI avec ajouts de données trimestrielles
-figT = simulationMAJData(Customers, Payments, Orders, '2017-09',
+figT = simulationMAJData(Customers, Payments, Orders, Reviews, '2017-09',
                          'trimestrielle')
 figT.show(renderer='notebook')
 if write_data is True:
     figT.write_image('./Figures/simMAJT.pdf', height=300)
 # %% [markdown]
-# Le premier trimestre reste plutôt bien corrélé (ARI>0.98). La pente augmente
-# ensuite jusqu'au 3è trimestre. On retrouve la chute importante au 4è trimestre
+# Le premier trimestre reste plutôt bien corrélé. La pente augmente légèrement
+# ensuite jusqu'au 3è trimestre. On retrouve la chute plus importante au 4è trimestre
 # %%
 # évolution du score ARI avec ajouts de données mensuelles
-figM = simulationMAJData(Customers, Payments, Orders, '2017-09', 'mensuelle')
+figM = simulationMAJData(Customers, Payments, Orders, Reviews, '2017-09', 'mensuelle')
 figM.show(renderer='notebook')
 if write_data is True:
     figM.write_image('./Figures/simMAJM.pdf', height=300)
 #%% [markdown]
-# Les trois premiers mois les données restent bien corrélées (ARI>0.98) mais après
-# on observe une pente plus importante entre le 3è et le 11è mois avec une chute
-# au 12è mois
+# Les 6 premiers mois les données restent bien corrélées (ARI>0.98) mais après
+# on observe des variations dont des chutes du score pour certains mois (M7)
+# et après 10 mois la chute est brutale
 
 #### Conclusion
 
-# Afin de conserver des données toujours au plus près de la réalité (ARI>0.98)
-# il me semble idéal de renouveler le modèle tout les 3 mois (mise à jours
-# trimestrielle). Si le modèle n'est renouvelé que tout les 6 mois on sera moins
-# proche de la réalité mais cela me semble rester pertinent car l'ARI reste autour
-# de 0.9. Par contre au delà la chute du score s'accélère et au bout d'un an l'ARI
-# passe en dessous de 0.6.
+# Afin de conserver des données toujours au plus près de la réalité il me semble 
+# idéal de renouveler le modèle tout les 3 mois (mise à jours trimestrielle). 
+# Si le modèle n'est renouvelé que tout les 6 mois on sera moins proche de la réalité
+# mais cela me semble rester pertinent. Par contre au delà la chute du score s'accélère
+# et au bout d'un an le score chute brutalement.
