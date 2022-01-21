@@ -202,12 +202,16 @@
 
 \begin{frame}{\insertsection: \insertsubsection}
     \begin{columns}
-        \begin{column}{.4\textwidth}
+        \begin{column}{.45\textwidth}
             \begin{itemize}
                 \item Seul 3\% des clients font au moins 2 commandes
             \end{itemize}
+            \input{./Tableaux/NbOrders.tex}
+            \begin{itemize}
+                \item Le nombre de clients ayant réalisé plus de 3 commandes est très faible nous allons donc les supprimer
+            \end{itemize}
         \end{column}
-        \begin{column}{.6\textwidth}
+        \begin{column}{.55\textwidth}
             \begin{figure}
                 \includegraphics[width=\textwidth]{piePropNbOrders.pdf}
             \end{figure}

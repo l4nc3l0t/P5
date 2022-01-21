@@ -238,8 +238,14 @@ OrdersNb = Customers.merge(DelivOrders, on='customer_id', how='right').groupby(
                  how='left').drop_duplicates('customer_unique_id')
 # %%
 OrdersNb['orders_number'].value_counts().sort_index()
+if write_data is True:
+    OrdersNb['orders_number'].value_counts().sort_index().reset_index(
+    ).to_latex('./Tableaux/NbOrders.tex',
+               header=['Nb commandes', 'Nb clients'],
+               index=False,
+               caption='Nombre de clients par nombre de commandes réalisées')
 # %% [markdown]
-# Au dessus de 4 commandes on a moins de 100 clients par nombre de commande 
+# Au dessus de 4 commandes on a moins de 100 clients par nombre de commande
 # on se limitera aux clients ayant fait 3 commandes maximum
 # %%
 OrdersNbClean = OrdersNb[OrdersNb.orders_number <= 3]
@@ -251,8 +257,8 @@ fig = px.pie(
         OrdersNb[OrdersNb.orders_number < 2].count()['customer_unique_id']
     ],
     names=['Au moins 2 commandes', '1 seule commande'],
-    title='Proportion de clients en fonction du nombre<br>de commandes effectuées'
-)
+    title=
+    'Proportion de clients en fonction du nombre<br>de commandes effectuées')
 fig.show(renderer='notebook')
 if write_data is True:
     fig.write_image('./Figures/piePropNbOrders.pdf')
@@ -366,7 +372,7 @@ PaymentsCust[PaymentsCust.mean_payment < 3000].count()
 # Seul une cinquantaine de clients dépenses plus de 3000 nous allons donc les
 # supprimer
 # %%
-PaymentsCustClean = PaymentsCust[PaymentsCust.mean_payment<3000]
+PaymentsCustClean = PaymentsCust[PaymentsCust.mean_payment < 3000]
 # %% [markdown]
 #### Analyse données produits
 # %%
