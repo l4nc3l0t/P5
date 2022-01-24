@@ -146,67 +146,8 @@
     \end{columns}
 \end{frame}
 
-\subsection{calcul de nouvelles variables}
-\begin{frame}{\insertsection: \insertsubsection}
-    \begin{itemize}
-        \item Études des clients = nécessité de regrouper les données de commandes par client
-        \item[]
-        \item Permet d'obtenir :
-              \begin{itemize}
-                  \item la date de la dernière commande
-                  \item le prix moyen d'une commande d'un client
-                  \item le nombre de commandes par client
-                  \item le temps moyen entre deux commandes effectuées par un même client
-                  \item la note moyenne données par un client
-                  \item le nombre de produits par catégories de produits achetés par un clients
-                  \item[] $\vdots$
-              \end{itemize}
-        \item[]
-        \item Utilisation des méthodes traditionnelles de marketing pour classifier les clients : classification RFM
-              \begin{itemize}
-                  \item Recency : la date à laquelle à été effectuée la dernière commande
-                  \item Frequency : le nombre de commande
-                  \item Monetary : le prix moyen d'une commandes d'un client
-              \end{itemize}
-    \end{itemize}
-\end{frame}
 
 \subsection{analyse des données}
-\subsubsection{Visualisation des données de RFM}
-\begin{frame}{\insertsection: \insertsubsection}{\insertsubsubsection}
-    \begin{columns}[t]
-        \begin{column}{.33\textwidth}
-            Recency
-            \begin{figure}
-                \includegraphics[width=\textwidth]{HistRFMlast_purchase_days.pdf}
-            \end{figure}
-            \begin{itemize}
-                \item Beaucoup d'achats entre 0 et 250 jours, mediane autour de 250
-                \item S'explique peut être du fait que le lancement du site commence seulement 2 ans avant la fin de nos données 
-            \end{itemize}
-        \end{column}
-        \begin{column}{.33\textwidth}
-            Frequency
-            \begin{figure}
-                \includegraphics[width=\textwidth]{HistRFMorders_number.pdf}
-            \end{figure}
-            \begin{itemize}
-                \item Majorité des clients ont effectués 1 seul achat mais quelques uns font 2 ou 3 commandes
-            \end{itemize}
-        \end{column}
-        \begin{column}{.33\textwidth}
-            Monetary
-            \begin{figure}
-                \includegraphics[width=\textwidth]{HistRFMmean_payment.pdf}
-            \end{figure}
-            \begin{itemize}
-                \item Dépense médiane autour de 100  certains clients sont très dépensiers jusqu'à 3000
-            \end{itemize}
-        \end{column}
-    \end{columns}
-\end{frame}
-
-
 \begin{frame}{\insertsection: \insertsubsection}
     \begin{columns}
         \begin{column}{.5\textwidth}
@@ -250,6 +191,66 @@
             \begin{figure}
                 \includegraphics[width=\textwidth]{piePropNbOrders.pdf}
             \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\subsection{calcul de nouvelles variables}
+\begin{frame}{\insertsection: \insertsubsection}
+    \begin{itemize}
+        \item Études des clients = nécessité de regrouper les données de commandes par client
+        \item[]
+        \item Permet d'obtenir :
+              \begin{itemize}
+                  \item la date de la dernière commande
+                  \item le prix moyen d'une commande d'un client
+                  \item le nombre de commandes par client
+                  \item le temps moyen entre deux commandes effectuées par un même client
+                  \item la note moyenne données par un client
+                  \item le nombre de produits par catégories de produits achetés par un clients
+                  \item[] $\vdots$
+              \end{itemize}
+        \item[]
+        \item Utilisation des méthodes traditionnelles de marketing pour classifier les clients : classification RFM
+              \begin{itemize}
+                  \item Recency : la date à laquelle à été effectuée la dernière commande
+                  \item Frequency : le nombre de commande
+                  \item Monetary : le prix moyen d'une commandes d'un client
+              \end{itemize}
+    \end{itemize}
+\end{frame}
+
+
+\subsubsection{Visualisation des données de RFM}
+\begin{frame}{\insertsection: \insertsubsection}{\insertsubsubsection}
+    \begin{columns}[t]
+        \begin{column}{.33\textwidth}
+            Recency
+            \begin{figure}
+                \includegraphics[width=\textwidth]{HistRFMlast_purchase_days.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Beaucoup d'achats entre 0 et 250 jours, mediane autour de 250
+                \item S'explique peut être du fait que le lancement du site commence seulement 2 ans avant la fin de nos données 
+            \end{itemize}
+        \end{column}
+        \begin{column}{.33\textwidth}
+            Frequency
+            \begin{figure}
+                \includegraphics[width=\textwidth]{HistRFMorders_number.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Majorité des clients ont effectués 1 seul achat mais quelques uns font 2 ou 3 commandes
+            \end{itemize}
+        \end{column}
+        \begin{column}{.33\textwidth}
+            Monetary
+            \begin{figure}
+                \includegraphics[width=\textwidth]{HistRFMmean_payment.pdf}
+            \end{figure}
+            \begin{itemize}
+                \item Dépense médiane autour de 100  certains clients sont très dépensiers jusqu'à 3000
+            \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
